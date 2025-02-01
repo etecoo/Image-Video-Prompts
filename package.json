@@ -1,0 +1,17 @@
+{
+  "name": "image-video-prompts",
+  "version": "1.0.0",
+  "description": "YAMLファイルからAI画像生成プロンプトを生成・変換するWebサービス",
+  "scripts": {
+    "start": "cd backend && gunicorn app:app",
+    "build": "cd frontend && npm install && npm run build",
+    "postinstall": "cd frontend && npm install"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "cacheDirectories": [
+    "frontend/node_modules"
+  ]
+}
