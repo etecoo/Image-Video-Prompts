@@ -1,0 +1,61 @@
+midjourney_prompts:
+  poster_01:
+    prompt: "cyberpunk Urashima Taro, half-cyborg protagonist in abandoned underwater megacity, quantum-distorted spacetime, detailed in style of Katsuhiro Otomo's AKIRA, neon colors with dark tones, UFO apparitions in background, glitch art effects, deep cyan and magenta color palette, hyper-detailed mechanical parts, quantum distortion effects --ar 16:9 --v 5 --q 2"
+
+  poster_02:
+    prompt: "time-traveling Urashima Taro split across multiple timelines, inside mysterious spaceship interior, Katsuhiro Otomo detailed art style, quantum entanglement visualization, electric blue and holographic silver, multiple exposure effects, quantum superposition, hyper-detailed mechanical environment --ar 16:9 --v 5 --q 2"
+
+  poster_03:
+    prompt: "cyberpunk Dragon Palace interpretation, quantum computing world, Katsuhiro Otomo ultra-precise style, neo-underwater civilization, Urashima Taro merged with quantum computer, advanced underwater megastructure, neon blue and emerald green palette, holographic effects, quantum energy visualization --ar 16:9 --v 5 --q 2"
+
+  poster_04:
+    prompt: "Urashima Taro's UFO encounter scene, cartographic worldview, Katsuhiro Otomo hyper-detailed style, interdimensional contact, mystical elements, protagonist communicating with aliens, distorted dimensional boundaries, plasma purple and psychedelic green, teleportation effects --ar 16:9 --v 5 --q 2"
+
+  poster_05:
+    prompt: "non-linear time visualization, Urashima Taro's fragmented memories, Katsuhiro Otomo deconstructive style, quantum memory reconstruction, cyberpunk memory manipulation, crystalline white and neon blue palette, memory fragmentation effects, hyper-detailed technological elements --ar 16:9 --v 5 --q 2"
+
+  poster_06:
+    prompt: "Urashima Taro's cyborg transformation, bio-mechanical fusion, Katsuhiro Otomo anatomical style, technological transformation, mystical evolution, half-mechanized protagonist, bioengineering facility background, metallic silver and neon red, biomechanical metamorphosis effects --ar 16:9 --v 5 --q 2"
+
+  poster_07:
+    prompt: "Urashima Taro's quantum journey, cartographic space map, Katsuhiro Otomo ultra-precise style, spacetime navigation, mystical space navigation, cosmic navigator protagonist, quantum-distorted space map, holographic silver and deep purple, spacetime sailing effects --ar 16:9 --v 5 --q 2"
+
+  poster_08:
+    prompt: "Urashima Taro inside UFO, alien civilization encounter, Katsuhiro Otomo ultra-detailed style, mystical technological interface, cyberpunk alien contact, protagonist communicating with aliens, advanced UFO interior, electric blue and plasma green, telepathic effects --ar 16:9 --v 5 --q 2"
+
+  poster_09:
+    prompt: "Urashima Taro's final transformation, mystical awakening, Katsuhiro Otomo super-resolution style, quantum consciousness expansion, cyberpunk transcendence, expanded consciousness protagonist, quantum consciousness space, transcendent white and neon purple, consciousness dematerialization effects --ar 16:9 --v 5 --q 2"
+
+  poster_10:
+    prompt: "Urashima Taro's ultimate transformation, transcending time and space, Katsuhiro Otomo ultimate style, mystical cosmic being, cyberpunk transformation, cosmic entity protagonist, multidimensional space, transcendent gold and holographic silver, dimensional shift effects --ar 16:9 --v 5 --q 2"
+
+runway_ml_prompts:
+  poster_01:
+    prompt: "Cyberpunk Urashima Taro, underwater ruins, quantum distortion, AKIRA style, neon cyberpunk, dark atmosphere, cyborg character, abandoned megastructure, cyan and magenta colors, glitch effects"
+
+  poster_02:
+    prompt: "Time-traveling warrior, quantum timeline split, spaceship interior, AKIRA detailed style, electric blue, holographic effects, multiple exposure, quantum physics visualization"
+
+  poster_03:
+    prompt: "Futuristic underwater palace, quantum computing aesthetic, AKIRA-inspired art, neo-civilization, quantum-human fusion, megastructure architecture, neon blue, emerald green, holographic technology"
+
+  poster_04:
+    prompt: "UFO encounter scene, dimensional portal, AKIRA detailed art, mystical technology, alien communication, plasma purple environment, psychedelic green effects, teleportation visualization"
+
+  poster_05:
+    prompt: "Non-linear timescape, memory fragments, AKIRA deconstructive style, quantum data visualization, cyberpunk memory tech, crystal white atmosphere, neon blue accents, digital fragmentation"
+
+  poster_06:
+    prompt: "Cyborg transformation scene, biomechanical fusion, AKIRA anatomical detail, tech evolution, mystical metamorphosis, chrome and neon red, scientific facility, organic-mechanical hybrid"
+
+  poster_07:
+    prompt: "Quantum space navigation, cartographic visualization, AKIRA precise detail, cosmic journey, mystical space map, holographic silver, deep purple atmosphere, spacetime distortion"
+
+  poster_08:
+    prompt: "UFO interior scene, alien technology interface, AKIRA detailed environment, cyberpunk communication, advanced alien tech, electric blue lighting, plasma green effects, telepathic visualization"
+
+  poster_09:
+    prompt: "Consciousness expansion scene, mystical awakening, AKIRA high-detail style, quantum transcendence, cyberpunk evolution, white energy, neon purple effects, consciousness visualization"
+
+  poster_10:
+    prompt: "Ultimate transformation scene, cosmic transcendence, AKIRA masterwork style, mystical evolution, cyberpunk ascension, gold and silver palette, dimensional transition, cosmic scale"
