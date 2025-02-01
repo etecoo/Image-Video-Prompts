@@ -1,12 +1,13 @@
 import yaml
 import json
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 import re
 from googletrans import Translator
 import os
 import requests
+import random
 
-REQUESTY_API_ENDPOINT = "https://router.requesty.ai/v1"
+REQUESTY_API_ENDPOINT = "https://requesty.ai/v1"
 REQUESTY_API_KEY = os.getenv("REQUESTY_API_KEY")
 
 class PromptOptimizer:
@@ -18,7 +19,8 @@ class PromptOptimizer:
             'imagen': '[詳細な文章による説明], [視覚的要素の指定], [感情や雰囲気の描写]',
             'canva': '[用途], [スタイル], [ブランド要素], [具体的なデザイン指示]',
             'dalle': '[詳細な状況説明], [視覚的要素], [スタイル指定], [技術的な詳細]',
-            'runway': '[シーン説明], [カメラワーク], [動きの指定], [時間経過], [特殊効果]',
+            'runway_image': '[詳細な説明], [視覚的要素], [スタイル指定], [技術的な詳細]',
+            'runway_video': '[シーン説明], [カメラワーク], [動きの指定], [時間経過], [特殊効果]',
             'sora': '[詳細なシーン設定], [動きの流れ], [カメラの動き], [時間経過], [雰囲気や感情]',
             'pika': '[アニメーション種類], [動きのスタイル], [タイミング], [強調要素]',
             'stable_video': '[基準画像の説明], [目指す動きの方向], [変化の程度], [時間設定]',
@@ -64,17 +66,39 @@ class PromptOptimizer:
                     return response.json()["translated_text"]
                 else:
                     print(f"Translation API error: {response.text}")
-                    # フォールバック: googletransを使用
                     return self.translator.translate(text, src='ja', dest='en').text
 
             except Exception as e:
                 print(f"Translation error: {e}")
-                # エラー時はgoogletransを使用
                 return self.translator.translate(text, src='ja', dest='en').text
         return text
 
+    def extract_prompts(self, yaml_data: Union[Dict, List, str]) -> List[str]:
+        """YAMLデータから複数のプロンプトを抽出"""
+        prompts = []
+
+        if isinstance(yaml_data, str):
+            prompts.append(yaml_data)
+            return prompts
+
+        if isinstance(yaml_data, list):
+            for item in yaml_data:
+                if isinstance(item, str):
+                    prompts.append(item)
+                elif isinstance(item, dict):
+                    prompt = self.extract_prompt(item)
+                    if prompt:
+                        prompts.append(prompt)
+            return prompts
+
+        prompt = self.extract_prompt(yaml_data)
+        if prompt:
+            prompts.append(prompt)
+
+        return prompts[:10]  # 最大10個のプロンプトを返す
+
     def extract_prompt(self, yaml_data: Dict) -> str:
-        """YAMLデータからプロンプト部分を抽出"""
+        """YAMLデータから単一のプロンプトを抽出"""
         if isinstance(yaml_data, str):
             return yaml_data
 
@@ -88,7 +112,6 @@ class PromptOptimizer:
         elif 'content' in yaml_data:
             prompt = yaml_data['content']
         
-        # プロンプトが見つからない場合は、最初の文字列値を使用
         if not prompt:
             for value in yaml_data.values():
                 if isinstance(value, str):
@@ -101,29 +124,25 @@ class PromptOptimizer:
         """サービスごとのプロンプト最適化"""
         service = service.lower()
         
-        # プロンプトを英語に変換
         prompt = self.translate_to_english(prompt)
 
         if service in self.service_params:
             params = self.service_params[service]
             
-            # 長さの制限
             if 'max_length' in params:
                 prompt = prompt[:params['max_length']]
 
-            # サービス固有のパラメータ処理
             if service == 'midjourney':
                 if not any(param in prompt for param in params['params']):
-                    prompt += ' --v 5 --q 2'  # デフォルトパラメータ
+                    prompt += ' --v 5 --q 2'
             
             elif service == 'imagefx':
                 if not any(style in prompt for style in params['styles']):
                     prompt += ', Digital Art style'
 
-        # プロンプトパターンに合わせて構造化
         if service in self.service_patterns:
             pattern = self.service_patterns[service]
-            if not re.search(r'[\[\],]', prompt):  # プロンプトが既に構造化されていない場合
+            if not re.search(r'[\[\],]', prompt):
                 sections = pattern.split('] ')
                 structured_prompt = prompt
                 for section in sections:
@@ -134,6 +153,31 @@ class PromptOptimizer:
                 prompt = structured_prompt
 
         return prompt
+
+    def generate_from_elements(self, elements: Dict[str, str], service: str) -> str:
+        """要素ベースのプロンプト生成"""
+        prompt_parts = []
+        
+        if elements.get('subject'):
+            prompt_parts.append(self.translate_to_english(elements['subject']))
+        
+        if elements.get('environment'):
+            prompt_parts.append(f"in {self.translate_to_english(elements['environment'])}")
+        
+        if elements.get('mood'):
+            prompt_parts.append(f"with {self.translate_to_english(elements['mood'])} mood")
+        
+        if elements.get('style'):
+            prompt_parts.append(f"in {self.translate_to_english(elements['style'])} style")
+        
+        if elements.get('details'):
+            prompt_parts.append(self.translate_to_english(elements['details']))
+        
+        if elements.get('colorPalette'):
+            prompt_parts.append(f"using {self.translate_to_english(elements['colorPalette'])} colors")
+
+        base_prompt = ", ".join(filter(None, prompt_parts))
+        return self.optimize_for_service(base_prompt, service)
 
 def load_yaml_content(content):
     """YAMLコンテンツをPythonオブジェクトに変換"""
@@ -150,35 +194,55 @@ def optimize_prompt(yaml_data, service='default'):
         if isinstance(yaml_data, str):
             yaml_data = load_yaml_content(yaml_data)
 
-        # プロンプトの抽出
-        prompt = optimizer.extract_prompt(yaml_data)
-        
-        # サービスごとの最適化
-        optimized_prompt = optimizer.optimize_for_service(prompt, service)
+        if isinstance(yaml_data, dict) and 'elements' in yaml_data:
+            return optimizer.generate_from_elements(yaml_data['elements'], service)
 
-        return optimized_prompt
+        prompts = optimizer.extract_prompts(yaml_data)
+        if not prompts:
+            raise ValueError("有効なプロンプトが見つかりません")
+
+        return [optimizer.optimize_for_service(prompt, service) for prompt in prompts]
 
     except Exception as e:
         raise ValueError(f"プロンプト生成エラー: {str(e)}")
 
-def generate_variations(prompt, num_variations=1):
+def generate_variations(base_prompt: Union[str, Dict], num_variations: int = 1) -> List[str]:
     """プロンプトのバリエーションを生成"""
     try:
+        optimizer = PromptOptimizer()
         variations = []
-        base_prompt = prompt
 
-        # 基本的なバリエーション生成
-        for i in range(num_variations):
-            if i == 0:
-                variations.append(base_prompt)
-            else:
-                # バリエーションごとに少しずつ異なる表現を追加
-                variation = base_prompt
-                if i % 2 == 0:
-                    variation += ", high quality, detailed"
-                else:
-                    variation += ", minimalist, clean"
+        if isinstance(base_prompt, dict) and 'elements' in base_prompt:
+            elements = base_prompt['elements']
+            service = base_prompt.get('service', 'default')
+            
+            for _ in range(num_variations):
+                modified_elements = {
+                    key: value + random.choice([
+                        ", detailed", ", minimalist", ", dramatic", 
+                        ", subtle", ", intense", ", balanced"
+                    ]) if random.random() > 0.5 else value
+                    for key, value in elements.items()
+                }
+                variation = optimizer.generate_from_elements(modified_elements, service)
                 variations.append(variation)
+        else:
+            base_prompt_str = base_prompt if isinstance(base_prompt, str) else optimizer.extract_prompt(base_prompt)
+            modifiers = [
+                ", high quality, detailed",
+                ", minimalist, clean",
+                ", dramatic lighting",
+                ", soft focus",
+                ", vibrant colors",
+                ", muted tones"
+            ]
+            
+            for i in range(num_variations):
+                if i == 0:
+                    variations.append(base_prompt_str)
+                else:
+                    variation = base_prompt_str + random.choice(modifiers)
+                    variations.append(variation)
 
         return variations
 

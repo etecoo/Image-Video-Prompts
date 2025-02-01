@@ -58,6 +58,43 @@
   margin-bottom: 2rem;
 }
 
+.service-categories {
+  margin-bottom: 2rem;
+}
+
+.service-category {
+  margin-bottom: 1.5rem;
+}
+
+.service-category h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.service-selector {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.service-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.service-button.active {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
 .file-input-wrapper {
   position: relative;
   width: 100%;
@@ -90,39 +127,75 @@
   color: rgba(255, 255, 255, 0.8);
 }
 
-.prompt-input {
-  width: 100%;
-  padding: 1rem;
+.prompt-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.prompt-count-selector {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.prompt-count-selector label {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+}
+
+.prompt-count-selector select {
+  padding: 0.3rem 0.5rem;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.prompt-elements {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.element-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.element-input label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.element-input input {
+  padding: 0.8rem;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   color: #ffffff;
-  font-size: 1rem;
-  resize: vertical;
-  min-height: 100px;
-  margin-bottom: 1rem;
+  font-size: 0.9rem;
 }
 
-.service-selector {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
+.element-input input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 
-.service-button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 15px;
+.generate-button {
+  padding: 0.8rem;
   background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 8px;
   color: #ffffff;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-size: 1rem;
 }
 
-.service-button.active {
+.generate-button:hover {
   background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
 }
 
 .error-message {
@@ -147,6 +220,7 @@
   border-radius: 10px;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .prompt-card:hover {
@@ -160,21 +234,26 @@
   border-radius: 8px;
   white-space: pre-wrap;
   word-break: break-word;
-  margin: 1rem 0;
+  margin: 0;
   font-family: 'Fira Code', monospace;
   font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.9);
+  padding-right: 4rem;
 }
 
 .copy-button {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
   background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
-  width: 100%;
+  font-size: 0.8rem;
+  backdrop-filter: blur(5px);
 }
 
 .copy-button:hover {
@@ -191,6 +270,10 @@
   }
 
   .prompts-section {
+    grid-template-columns: 1fr;
+  }
+
+  .prompt-elements {
     grid-template-columns: 1fr;
   }
 }

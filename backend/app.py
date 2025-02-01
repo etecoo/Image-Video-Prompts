@@ -19,18 +19,28 @@ def serve(path):
 def generate_prompt():
     try:
         data = request.get_json()
-        if not data or 'yaml' not in data:
-            return jsonify({'error': 'YAMLデータが必要です'}), 400
+        if not data:
+            return jsonify({'error': '入力データが必要です'}), 400
+
+        service = data.get('service', 'default')
+        count = int(data.get('count', 1))
+
+        # 要素ベースのプロンプト生成
+        if 'elements' in data:
+            elements_data = {
+                'elements': data['elements'],
+                'service': service
+            }
+            variations = generate_variations(elements_data, count)
+            return jsonify({'prompts': variations})
+
+        # 従来のYAMLベースのプロンプト生成
+        if 'yaml' not in data:
+            return jsonify({'error': 'YAMLデータまたは要素データが必要です'}), 400
 
         yaml_content = data['yaml']
-        service = data.get('service', 'default')
-        num_variations = data.get('num_variations', 1)
-
-        # プロンプトの最適化
         optimized_prompt = optimize_prompt(yaml_content, service)
-        
-        # バリエーションの生成
-        variations = generate_variations(optimized_prompt, num_variations)
+        variations = generate_variations(optimized_prompt, count)
 
         return jsonify({'prompts': variations})
     except Exception as e:
@@ -46,10 +56,15 @@ def convert_prompt():
         yaml_content = data['yaml']
         service = data.get('service', 'default')
 
-        # プロンプトの最適化
-        optimized_prompt = optimize_prompt(yaml_content, service)
-
-        return jsonify({'prompts': [optimized_prompt]})
+        # プロンプトの最適化（複数のプロンプトに対応）
+        optimized_prompts = optimize_prompt(yaml_content, service)
+        
+        # 単一のプロンプトの場合はリストに変換
+        if isinstance(optimized_prompts, str):
+            optimized_prompts = [optimized_prompts]
+        
+        # 最大10個のプロンプトを返す
+        return jsonify({'prompts': optimized_prompts[:10]})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

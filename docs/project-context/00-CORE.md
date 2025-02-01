@@ -21,20 +21,78 @@
 │       ├── App.js              # メインアプリケーションコンポーネント
 │       ├── App.css             # アプリケーションスタイル
 │       ├── index.js            # エントリーポイント
-│       └── index.css           # グローバルスタイル
+│       ├── index.css           # グローバルスタイル
+│       └── utils/              # ユーティリティ
+│           └── yamlParser.js   # YAML処理ユーティリティ
 ├── backend/                     # Pythonバックエンド
 │   ├── app.py                  # メインアプリケーション
 │   ├── prompt_utils.py         # プロンプト処理ユーティリティ
 │   └── requirements.txt        # Python依存関係
 └── urashima/                   # プロンプトテンプレート
     ├── urashima-prompts.yaml   # Midjourneyおよびrunway_ml用プロンプト
-    └── urashima-yaml-01        # その他のプロンプト定義
+    └── urashima-yaml-01        # 神威から生成されたプロンプトテンプレート
 
 ### 重要なファイル
-- frontend/package.json: フロントエンドの依存関係とスクリプト定義
-- backend/app.py: FlaskベースのRESTful API実装
-- backend/prompt_utils.py: プロンプト変換ロジック
-- urashima/urashima-prompts.yaml: 異なるAIモデル用のプロンプトテンプレート
+- frontend/src/App.js: 
+  - メインアプリケーションコンポーネント
+  - AIサービスの分類表示（画像/動画）
+  - 要素ベースのプロンプト生成フォーム
+  - プロンプト生成数の制御UI
+- frontend/src/App.css:
+  - アプリケーションスタイル
+  - レスポンシブデザイン
+  - モダンなUI要素
+- backend/app.py:
+  - FlaskベースのRESTful API実装
+  - 複数プロンプト処理
+  - 要素ベース生成API
+- backend/prompt_utils.py:
+  - プロンプト変換・生成ロジック
+  - 要素ベースの生成機能
+  - AIサービス別の最適化
+- urashima/urashima-prompts.yaml:
+  - 各AIサービス用のプロンプトテンプレート
+- urashima/urashima-yaml-01:
+  - 変換モード用のYAMLテンプレート
+
+## 機能概要
+
+### プロンプト生成モード
+1. 要素ベース生成
+   - 6つの要素入力
+     * 主題（人物、ものなど）
+     * 環境
+     * 雰囲気
+     * スタイル
+     * ディテール
+     * カラーパレット
+   - 生成数制御（1-10個）
+   - AIサービス別の最適化
+
+### YAML変換モード
+1. ファイル処理
+   - 最大10個のプロンプト抽出
+   - 各プロンプトの個別コピー機能
+2. サービス最適化
+   - 画像生成AI対応
+   - 動画生成AI対応
+   - Runway ML（画像/動画）対応
+
+### 対応AIサービス
+
+#### 画像生成AI
+- Midjourney
+- Image FX
+- Imagen
+- DALL-E 3
+- Runway ML（画像モード）
+
+#### 動画生成AI
+- Runway ML（動画モード）
+- Sora
+- Pika Labs
+- Stable Video
+- Gen-2
 
 ## 依存関係
 
@@ -50,6 +108,8 @@
 ### バックエンド
 - Flask: 軽量Webフレームワーク
 - PyYAML: YAMLパーサー/ジェネレーター
+- googletrans: 翻訳機能
+- requests: HTTP通信
 
 ## ドキュメント管理方針
 
