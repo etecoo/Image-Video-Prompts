@@ -1,11 +1,21 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from prompt_utils import load_yaml_content, optimize_prompt, generate_variations
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../frontend/build')
 CORS(app)
 
-@app.route('/generate', methods=['POST'])
+# フロントエンドのルートパスへのルーティング
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path != "" and os.path.exists(app.static_folder + '/' + path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/api/generate', methods=['POST'])
 def generate_prompt():
     try:
         data = request.get_json()
@@ -26,7 +36,7 @@ def generate_prompt():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/convert', methods=['POST'])
+@app.route('/api/convert', methods=['POST'])
 def convert_prompt():
     try:
         data = request.get_json()
@@ -44,4 +54,4 @@ def convert_prompt():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8000)))

@@ -4,7 +4,7 @@
   "description": "YAMLファイルからAI画像生成プロンプトを生成・変換するWebサービス",
   "scripts": {
     "start": "cd backend && gunicorn app:app",
-    "build": "cd frontend && npm install && npm run build",
+    "build": "cd frontend && CI=false npm install && CI=false npm run build",
     "postinstall": "cd frontend && npm install"
   },
   "engines": {
