@@ -69,11 +69,11 @@ export const structurePromptData = (yamlData) => {
   }
 
   // プロンプトの抽出と構造化
-  if (yamlData.src?.['midjourney-prompts']?.['quantum-drone-prompts']) {
-    const promptFiles = yamlData.src['midjourney-prompts']['quantum-drone-prompts'];
+  if (yamlData.src?.['midjourney-prompts']) {
+    const promptFiles = yamlData.src['midjourney-prompts'];
     
     Object.entries(promptFiles).forEach(([filename, data]) => {
-      if (data.content && filename.startsWith('prompt-')) {
+      if (data.content && filename.startsWith('prompt')) {
         const { prompt, parameters } = extractMidjourneyParams(data.content);
         structured.prompts.push({
           id: filename,
