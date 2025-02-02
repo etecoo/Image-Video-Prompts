@@ -240,15 +240,78 @@ function App() {
         <section className="input-section">
 
           {mode === 'convert' ? (
-            <div className="file-input-wrapper">
-              <input
-                type="file"
-                accept=".yaml,.yml"
-                onChange={handleFileUpload}
-                className="file-input"
-              />
-              <span className="file-input-label">YAML</span>
-            </div>
+            <>
+              <div className="input-type-toggle">
+                <button
+                  className={`toggle-button ${!yamlContent ? 'active' : ''}`}
+                  onClick={() => setYamlContent(null)}
+                >
+                  ファイルアップロード
+                </button>
+                <button
+                  className={`toggle-button ${yamlContent ? 'active' : ''}`}
+                  onClick={() => setYamlContent('')}
+                >
+                  テキスト入力
+                </button>
+              </div>
+              {!yamlContent ? (
+                <div className="file-input-wrapper">
+                  <input
+                    type="file"
+                    accept=".yaml,.yml"
+                    onChange={handleFileUpload}
+                    className="file-input"
+                  />
+                  <span className="file-input-label">YAML</span>
+                </div>
+              ) : (
+                <div className="yaml-text-input">
+                  <textarea
+                    value={yamlContent}
+                    onChange={async (e) => {
+                      const content = e.target.value;
+                      setYamlContent(content);
+                      
+                      if (!validateYaml(content)) {
+                        setError(getYamlError(content));
+                        return;
+                      }
+
+                      try {
+                        const parsedYaml = parseYaml(content);
+                        const structuredData = structurePromptData(parsedYaml);
+                        
+                        setProjectInfo(structuredData.project);
+                        setError(null);
+
+                        const response = await fetch('/api/convert', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                            yaml: parsedYaml,
+                            service: service
+                          }),
+                        });
+
+                        if (!response.ok) {
+                          throw new Error('サーバーエラーが発生しました');
+                        }
+
+                        const data = await response.json();
+                        setPrompts(structuredData.prompts);
+                      } catch (err) {
+                        setError(err.message);
+                      }
+                    }}
+                    placeholder="YAMLを入力してください..."
+                    className="yaml-textarea"
+                  />
+                </div>
+              )}
+            </>
           ) : (
             <form onSubmit={handlePromptSubmit} className="prompt-form">
               <div className="prompt-elements">
