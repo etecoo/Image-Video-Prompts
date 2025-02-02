@@ -5,15 +5,15 @@
 }
 
 .App-header {
-  padding: 2rem;
+  padding: 1.5rem;
   background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
 }
 
 .App-header h1 {
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 300;
+  font-size: 1.8rem;
+  font-weight: 700;
   letter-spacing: 0.1em;
 }
 
@@ -26,8 +26,9 @@
 .mode-selector {
   display: flex;
   gap: 1rem;
-  margin-bottom: 2rem;
-  justify-content: center;
+  margin-bottom: 0;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .mode-button {
@@ -55,7 +56,7 @@
   padding: 2rem;
   border-radius: 15px;
   backdrop-filter: blur(10px);
-  margin-bottom: 2rem;
+  margin-top: 1rem;
 }
 
 .service-categories {
@@ -76,6 +77,7 @@
 .service-selector {
   width: 100%;
   max-width: 300px;
+  margin-left: 1rem;
 }
 
 .service-select,
@@ -151,26 +153,6 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-}
-
-.prompt-count-selector {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.prompt-count-selector label {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.9rem;
-}
-
-.prompt-count-selector select {
-  padding: 0.3rem 0.5rem;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  cursor: pointer;
 }
 
 .prompt-elements {
@@ -251,6 +233,33 @@
   backdrop-filter: blur(5px);
 }
 
+.project-info {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(10px);
+}
+
+.project-info h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.5rem;
+}
+
+.project-info ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.project-info li {
+  margin-bottom: 0.5rem;
+}
+
 .prompts-section {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -272,7 +281,18 @@
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-.prompt-card pre {
+.prompt-content {
+  margin-bottom: 1rem;
+}
+
+.prompt-content h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.prompt-content pre {
   background: rgba(0, 0, 0, 0.2);
   padding: 1rem;
   border-radius: 8px;
@@ -282,7 +302,27 @@
   font-family: 'Fira Code', monospace;
   font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.9);
-  padding-right: 4rem;
+}
+
+.prompt-parameters {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.prompt-parameters h5 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.prompt-parameters pre {
+  background: rgba(0, 0, 0, 0.15);
+  padding: 0.8rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  margin: 0;
 }
 
 .copy-button {
@@ -308,6 +348,13 @@
   transform: scale(0.98);
 }
 
+.controls-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
 @media (max-width: 768px) {
   .App-main {
     padding: 1rem;
@@ -319,5 +366,19 @@
 
   .prompt-elements {
     grid-template-columns: 1fr;
+  }
+
+  .project-info {
+    margin: 1rem;
+  }
+
+  .controls-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .service-selector {
+    margin-left: 0;
+    margin-top: 1rem;
   }
 }

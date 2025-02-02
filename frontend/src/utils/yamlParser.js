@@ -1,6 +1,11 @@
 import yaml from 'js-yaml';
 
 /**
+ * Midjourneyパラメータを抽出する正規表現パターン
+ */
+const MIDJOURNEY_PARAM_PATTERN = /--(?:ar|v|style|q|s)\s+[^\s,]+/g;
+
+/**
  * YAMLテキストをJavaScriptオブジェクトに変換
  * @param {string} yamlText - 変換するYAMLテキスト
  * @returns {Object} 変換されたJavaScriptオブジェクト
@@ -16,6 +21,78 @@ export const parseYaml = (yamlText) => {
 };
 
 /**
+ * プロンプトからMidjourneyパラメータを抽出
+ * @param {string} promptText - プロンプトテキスト
+ * @returns {Object} プロンプト本文とパラメータ
+ */
+export const extractMidjourneyParams = (promptText) => {
+  const params = promptText.match(MIDJOURNEY_PARAM_PATTERN) || [];
+  const cleanPrompt = promptText
+    .replace(MIDJOURNEY_PARAM_PATTERN, '')
+    .replace(/,\s*$/, '')
+    .trim();
+
+  const paramObj = {};
+  params.forEach(param => {
+    const [key, value] = param.split(/\s+/);
+    paramObj[key.slice(2)] = value; // '--'を除去
+  });
+
+  return {
+    prompt: cleanPrompt,
+    parameters: paramObj
+  };
+};
+
+/**
+ * プロンプトデータを構造化
+ * @param {Object} yamlData - パースされたYAMLデータ
+ * @returns {Object} 構造化されたプロンプトデータ
+ */
+export const structurePromptData = (yamlData) => {
+  const structured = {
+    project: null,
+    prompts: []
+  };
+
+  // プロジェクト情報の抽出
+  if (yamlData.src?.['structure.yaml']?.content) {
+    structured.project = {
+      title: yamlData.src['structure.yaml'].content.split('\n')[0],
+      strategy: yamlData.src['structure.yaml'].content
+        .split('\n')
+        .slice(1)
+        .filter(line => line.trim().startsWith('-'))
+        .map(line => line.trim().slice(2)),
+      agent: yamlData.src['structure.yaml'].agent
+    };
+  }
+
+  // プロンプトの抽出と構造化
+  if (yamlData.src?.['midjourney-prompts']?.['quantum-drone-prompts']) {
+    const promptFiles = yamlData.src['midjourney-prompts']['quantum-drone-prompts'];
+    
+    Object.entries(promptFiles).forEach(([filename, data]) => {
+      if (data.content && filename.startsWith('prompt-')) {
+        const { prompt, parameters } = extractMidjourneyParams(data.content);
+        structured.prompts.push({
+          id: filename,
+          content: prompt,
+          parameters,
+          metadata: {
+            agent: data.agent,
+            dependency: data.dependency,
+            api: data.api
+          }
+        });
+      }
+    });
+  }
+
+  return structured;
+};
+
+/**
  * JavaScriptオブジェクトをYAMLテキストに変換
  * @param {Object} data - 変換するJavaScriptオブジェクト
  * @returns {string} 変換されたYAMLテキスト
@@ -25,8 +102,8 @@ export const dumpYaml = (data) => {
   try {
     return yaml.dump(data, {
       indent: 2,
-      lineWidth: -1, // 行の折り返しを無効化
-      noRefs: true, // 循環参照の処理を無効化
+      lineWidth: -1,
+      noRefs: true,
     });
   } catch (error) {
     console.error('YAML変換エラー:', error);

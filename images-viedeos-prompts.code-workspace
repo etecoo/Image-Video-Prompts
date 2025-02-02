@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"name": "Images-videos-prompts",
+			"path": "."
+		}
+	],
+	"settings": {
+		"cSpell.words": [
+			"DEEPSEEK",
+			"Requesty"
+		]
+	},
+	"extensions": {
+		"recommendations": [
+			"saoudrizwan.claude-dev"
+		]
+	}
+}

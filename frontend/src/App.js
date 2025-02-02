@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { parseYaml, validateYaml, getYamlError } from './utils/yamlParser';
+import { parseYaml, validateYaml, getYamlError, structurePromptData } from './utils/yamlParser';
 import './App.css';
 
 function App() {
-  const [mode, setMode] = useState('convert'); // 'convert' or 'generate'
+  const [mode, setMode] = useState('convert');
   const [yamlContent, setYamlContent] = useState(null);
-  const [promptCount, setPromptCount] = useState(3);
-  const [service, setService] = useState('midjourney');
+  const [service, setService] = useState('');
   const [error, setError] = useState(null);
   const [prompts, setPrompts] = useState([]);
+  const [projectInfo, setProjectInfo] = useState(null);
   const [promptElements, setPromptElements] = useState({
     subject: '',
     environment: '',
@@ -18,19 +18,17 @@ function App() {
     style: '',
     details: '',
     colorPalette: '',
-    // カメラワーク
-    cameraAngle: 'eye_level',
-    shotType: 'medium',
-    perspective: 'one_point',
-    // 構図
-    compositionRule: 'rule_of_thirds',
-    compositionTechnique: 'none',
-    // 照明
-    lightingDirection: 'front',
-    lightingType: 'natural'
+    cameraAngle: '',
+    shotType: '',
+    perspective: '',
+    compositionRule: '',
+    compositionTechnique: '',
+    lightingDirection: '',
+    lightingType: ''
   });
 
   const cameraAngles = [
+    { id: '', name: '選択なし' },
     { id: 'eye_level', name: 'Eye Level' },
     { id: 'low_angle', name: 'Low Angle' },
     { id: 'high_angle', name: 'High Angle' },
@@ -39,6 +37,7 @@ function App() {
   ];
 
   const shotTypes = [
+    { id: '', name: '選択なし' },
     { id: 'extreme_close_up', name: 'Extreme Close-up' },
     { id: 'close_up', name: 'Close-up' },
     { id: 'medium', name: 'Medium Shot' },
@@ -47,12 +46,14 @@ function App() {
   ];
 
   const perspectives = [
+    { id: '', name: '選択なし' },
     { id: 'one_point', name: 'One-Point Perspective' },
     { id: 'two_point', name: 'Two-Point Perspective' },
     { id: 'three_point', name: 'Three-Point Perspective' }
   ];
 
   const compositionRules = [
+    { id: '', name: '選択なし' },
     { id: 'rule_of_thirds', name: 'Rule of Thirds' },
     { id: 'golden_ratio', name: 'Golden Ratio' },
     { id: 'center', name: 'Central Composition' },
@@ -61,7 +62,7 @@ function App() {
   ];
 
   const compositionTechniques = [
-    { id: 'none', name: 'None' },
+    { id: '', name: '選択なし' },
     { id: 'leading_lines', name: 'Leading Lines' },
     { id: 'frame_in_frame', name: 'Frame within Frame' },
     { id: 'symmetry', name: 'Symmetry' },
@@ -69,6 +70,7 @@ function App() {
   ];
 
   const lightingDirections = [
+    { id: '', name: '選択なし' },
     { id: 'front', name: 'Front Lighting' },
     { id: 'side', name: 'Side Lighting' },
     { id: 'back', name: 'Back Lighting' },
@@ -77,6 +79,7 @@ function App() {
   ];
 
   const lightingTypes = [
+    { id: '', name: '選択なし' },
     { id: 'natural', name: 'Natural Light' },
     { id: 'artificial', name: 'Artificial Light' },
     { id: 'rim', name: 'Rim Light' }
@@ -120,7 +123,10 @@ function App() {
 
       try {
         const parsedYaml = parseYaml(content);
+        const structuredData = structurePromptData(parsedYaml);
+        
         setYamlContent(parsedYaml);
+        setProjectInfo(structuredData.project);
         setError(null);
 
         const response = await fetch('/api/convert', {
@@ -139,8 +145,7 @@ function App() {
         }
 
         const data = await response.json();
-        // 最大10個のプロンプトを表示
-        setPrompts(Array.isArray(data.prompts) ? data.prompts.slice(0, 10) : [data.prompts]);
+        setPrompts(structuredData.prompts);
       } catch (err) {
         setError(err.message);
       }
@@ -151,18 +156,21 @@ function App() {
 
   const handlePromptSubmit = async (e) => {
     e.preventDefault();
-    if (Object.values(promptElements).every(val => !val.trim())) return;
 
     try {
+      // 空でないプロパティのみを含むオブジェクトを作成
+      const nonEmptyElements = Object.fromEntries(
+        Object.entries(promptElements).filter(([_, value]) => value.trim() !== '')
+      );
+
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          elements: promptElements,
-          service: service,
-          count: promptCount
+          elements: nonEmptyElements,
+          service: service
         }),
       });
 
@@ -171,7 +179,11 @@ function App() {
       }
 
       const data = await response.json();
-      setPrompts(data.prompts);
+      setPrompts([{
+        content: data.prompts[0],
+        parameters: {},
+        metadata: { service }
+      }]);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -192,38 +204,40 @@ function App() {
       </header>
 
       <main className="App-main">
-        <div className="mode-selector">
-          <button
-            className={`mode-button ${mode === 'convert' ? 'active' : ''}`}
-            onClick={() => setMode('convert')}
-          >
-            YAML
-          </button>
-          <button
-            className={`mode-button ${mode === 'generate' ? 'active' : ''}`}
-            onClick={() => setMode('generate')}
-          >
-            Generate
-          </button>
+        <div className="controls-row">
+          <div className="mode-selector">
+            <button
+              className={`mode-button ${mode === 'convert' ? 'active' : ''}`}
+              onClick={() => setMode('convert')}
+            >
+              YAML
+            </button>
+            <button
+              className={`mode-button ${mode === 'generate' ? 'active' : ''}`}
+              onClick={() => setMode('generate')}
+            >
+              Generate
+            </button>
+          </div>
+          <div className="service-selector">
+            <select
+              value={service}
+              onChange={(e) => setService(e.target.value)}
+              className="service-select"
+            >
+              <option value="">Select AI Service</option>
+              {aiServices.map(category => (
+                <optgroup key={category.category} label={category.category}>
+                  {category.services.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
         </div>
 
         <section className="input-section">
-          <div className="service-selector">
-           <select
-             value={service}
-             onChange={(e) => setService(e.target.value)}
-             className="service-select"
-           >
-             <option value="">Select AI Service</option>
-             {aiServices.map(category => (
-               <optgroup key={category.category} label={category.category}>
-                 {category.services.map(s => (
-                   <option key={s.id} value={s.id}>{s.name}</option>
-                 ))}
-               </optgroup>
-             ))}
-           </select>
-         </div>
 
           {mode === 'convert' ? (
             <div className="file-input-wrapper">
@@ -237,18 +251,6 @@ function App() {
             </div>
           ) : (
             <form onSubmit={handlePromptSubmit} className="prompt-form">
-              <div className="prompt-count-selector">
-                <label htmlFor="promptCount">生成するプロンプト数:</label>
-                <select
-                  id="promptCount"
-                  value={promptCount}
-                  onChange={(e) => setPromptCount(Number(e.target.value))}
-                >
-                  {[...Array(10)].map((_, i) => (
-                    <option key={i + 1} value={i + 1}>{i + 1}</option>
-                  ))}
-                </select>
-              </div>
               <div className="prompt-elements">
                 <div className="element-group">
                   <h4>Basic Elements</h4>
@@ -309,7 +311,7 @@ function App() {
                 </div>
 
                 <div className="element-group">
-                  <h4>Camera Work</h4>
+                  <h4>Composition & Camera Work</h4>
                   <div className="element-input">
                     <label>Camera Angle</label>
                     <select
@@ -346,10 +348,6 @@ function App() {
                       ))}
                     </select>
                   </div>
-                </div>
-
-                <div className="element-group">
-                  <h4>Composition</h4>
                   <div className="element-input">
                     <label>Composition Rule</label>
                     <select
@@ -377,7 +375,7 @@ function App() {
                 </div>
 
                 <div className="element-group">
-                  <h4>Lighting</h4>
+                  <h4>Lighting & Details</h4>
                   <div className="element-input">
                     <label>Light Direction</label>
                     <select
@@ -402,10 +400,6 @@ function App() {
                       ))}
                     </select>
                   </div>
-                </div>
-
-                <div className="element-group">
-                  <h4>Additional Details</h4>
                   <div className="element-input">
                     <label>Details</label>
                     <input
@@ -435,13 +429,38 @@ function App() {
           {error && <div className="error-message">{error}</div>}
         </section>
 
+        {projectInfo && (
+          <div className="project-info">
+            <h3>{projectInfo.title}</h3>
+            <ul>
+              {projectInfo.strategy.map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {prompts.length > 0 && (
           <div className="prompts-section">
             {prompts.map((prompt, index) => (
               <div key={index} className="prompt-card">
-                <pre>{prompt}</pre>
+                <div className="prompt-content">
+                  <h4>Prompt {index + 1}</h4>
+                  <pre>{prompt.content}</pre>
+                  {Object.keys(prompt.parameters).length > 0 && (
+                    <div className="prompt-parameters">
+                      <h5>Parameters:</h5>
+                      <pre>{JSON.stringify(prompt.parameters, null, 2)}</pre>
+                    </div>
+                  )}
+                </div>
                 <button
-                  onClick={() => navigator.clipboard.writeText(prompt)}
+                  onClick={() => navigator.clipboard.writeText(
+                    prompt.content + ' ' + 
+                    Object.entries(prompt.parameters)
+                      .map(([key, value]) => `--${key} ${value}`)
+                      .join(' ')
+                  )}
                   className="copy-button"
                   title="Copy to clipboard"
                 >

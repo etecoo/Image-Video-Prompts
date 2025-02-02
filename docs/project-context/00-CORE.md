@@ -36,57 +36,59 @@
 - frontend/src/App.js: 
   - メインアプリケーションコンポーネント
   - AIサービスの分類表示（画像/動画）
-  - 要素ベースのプロンプト生成フォーム
-  - プロンプト生成数の制御UI
+  - 3セクション構成のプロンプト生成フォーム
+  - モードセレクターとサービスセレクターの統合UI
 - frontend/src/App.css:
   - アプリケーションスタイル
   - レスポンシブデザイン
   - モダンなUI要素
+  - 最適化されたスペース利用
+- frontend/src/utils/yamlParser.js:
+  - YAMLパース機能
+  - プロンプトとパラメータの分離
+  - 構造化データの生成
 - backend/app.py:
   - FlaskベースのRESTful API実装
-  - 複数プロンプト処理
+  - プロンプト処理
   - 要素ベース生成API
 - backend/prompt_utils.py:
   - プロンプト変換・生成ロジック
   - 要素ベースの生成機能
   - AIサービス別の最適化
-- urashima/urashima-prompts.yaml:
-  - 各AIサービス用のプロンプトテンプレート
-- urashima/urashima-yaml-01:
-  - 変換モード用のYAMLテンプレート
 
 ## 機能概要
 
 ### プロンプト生成モード
-1. 要素ベース生成
-   - 9つの要素入力
+1. 要素ベース生成（3セクション構成）
+   - Basic Elements（基本要素）
      * Subject（主題：人物、ものなど）
      * Environment（環境）
      * When（時間帯・時期）
      * Action（動作・行動）
      * Mood（雰囲気）
      * Style（スタイル）
+   - Composition & Camera Work（構図とカメラワーク）
+     * Camera Angle（カメラアングル）
+     * Shot Type（ショットタイプ）
+     * Perspective（パース）
+     * Composition Rule（構図ルール）
+     * Composition Technique（構図テクニック）
+   - Lighting & Details（照明と詳細）
+     * Light Direction（照明方向）
+     * Light Type（照明タイプ）
      * Details（ディテール）
-     * Composition（構図：プリセットから選択）
      * Color Palette（カラーパレット）
-   - 構図プリセット
-     * Center Composition
-     * Rule of Thirds
-     * Golden Ratio
-     * Diagonal
-     * Symmetrical
-     * Frame Within Frame
-     * Leading Lines
-     * Triangular
-     * Radial
-     * Pattern
-   - 生成数制御（1-10個）
-   - AIサービス別の最適化
+
+2. 柔軟な入力システム
+   - すべての要素がオプショナル
+   - プルダウンに「選択なし」オプション
+   - 空の入力値を自動スキップ
 
 ### YAML変換モード
 1. ファイル処理
-   - 最大10個のプロンプト抽出
-   - 各プロンプトの個別コピー機能
+   - プロンプトとパラメータの分離抽出
+   - プロンプト本文の最適化
+   - パラメータの構造化
 2. サービス最適化
    - 画像生成AI対応
    - 動画生成AI対応
