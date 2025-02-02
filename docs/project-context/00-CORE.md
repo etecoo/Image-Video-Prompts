@@ -59,13 +59,27 @@
 
 ### プロンプト生成モード
 1. 要素ベース生成
-   - 6つの要素入力
-     * 主題（人物、ものなど）
-     * 環境
-     * 雰囲気
-     * スタイル
-     * ディテール
-     * カラーパレット
+   - 9つの要素入力
+     * Subject（主題：人物、ものなど）
+     * Environment（環境）
+     * When（時間帯・時期）
+     * Action（動作・行動）
+     * Mood（雰囲気）
+     * Style（スタイル）
+     * Details（ディテール）
+     * Composition（構図：プリセットから選択）
+     * Color Palette（カラーパレット）
+   - 構図プリセット
+     * Center Composition
+     * Rule of Thirds
+     * Golden Ratio
+     * Diagonal
+     * Symmetrical
+     * Frame Within Frame
+     * Leading Lines
+     * Triangular
+     * Radial
+     * Pattern
    - 生成数制御（1-10個）
    - AIサービス別の最適化
 

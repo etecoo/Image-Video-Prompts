@@ -12,22 +12,38 @@ function App() {
   const [promptElements, setPromptElements] = useState({
     subject: '',
     environment: '',
+    when: '',
+    action: '',
     mood: '',
     style: '',
     details: '',
+    composition: 'center',
     colorPalette: ''
   });
+
+  const compositions = [
+    { id: 'center', name: 'Center Composition' },
+    { id: 'rule_of_thirds', name: 'Rule of Thirds' },
+    { id: 'golden_ratio', name: 'Golden Ratio' },
+    { id: 'diagonal', name: 'Diagonal' },
+    { id: 'symmetrical', name: 'Symmetrical' },
+    { id: 'frame_within_frame', name: 'Frame Within Frame' },
+    { id: 'leading_lines', name: 'Leading Lines' },
+    { id: 'triangular', name: 'Triangular' },
+    { id: 'radial', name: 'Radial' },
+    { id: 'pattern', name: 'Pattern' }
+  ];
 
   const imageServices = [
     { id: 'midjourney', name: 'Midjourney' },
     { id: 'imagefx', name: 'Image FX' },
     { id: 'imagen', name: 'Imagen' },
     { id: 'dalle', name: 'DALL-E 3' },
-    { id: 'runway_image', name: 'Runway ML (画像)' }
+    { id: 'runway_image', name: 'Runway ML (Image)' }
   ];
 
   const videoServices = [
-    { id: 'runway_video', name: 'Runway ML (動画)' },
+    { id: 'runway_video', name: 'Runway ML (Video)' },
     { id: 'sora', name: 'Sora' },
     { id: 'pika', name: 'Pika Labs' },
     { id: 'stable_video', name: 'Stable Video' },
@@ -139,31 +155,33 @@ function App() {
         <section className="input-section">
           <div className="service-categories">
             <div className="service-category">
-              <h3>画像生成AI</h3>
+              <h3>Image Generation</h3>
               <div className="service-selector">
-                {imageServices.map(s => (
-                  <button
-                    key={s.id}
-                    className={`service-button ${service === s.id ? 'active' : ''}`}
-                    onClick={() => setService(s.id)}
-                  >
-                    {s.name}
-                  </button>
-                ))}
+                <select
+                  value={service}
+                  onChange={(e) => setService(e.target.value)}
+                  className="service-select"
+                >
+                  <option value="">Select Image AI</option>
+                  {imageServices.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="service-category">
-              <h3>動画生成AI</h3>
+              <h3>Video Generation</h3>
               <div className="service-selector">
-                {videoServices.map(s => (
-                  <button
-                    key={s.id}
-                    className={`service-button ${service === s.id ? 'active' : ''}`}
-                    onClick={() => setService(s.id)}
-                  >
-                    {s.name}
-                  </button>
-                ))}
+                <select
+                  value={service}
+                  onChange={(e) => setService(e.target.value)}
+                  className="service-select"
+                >
+                  <option value="">Select Video AI</option>
+                  {videoServices.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
@@ -194,57 +212,87 @@ function App() {
               </div>
               <div className="prompt-elements">
                 <div className="element-input">
-                  <label>主題（人物、ものなど）</label>
+                  <label>Subject</label>
                   <input
                     type="text"
                     value={promptElements.subject}
                     onChange={(e) => handleElementChange('subject', e.target.value)}
-                    placeholder="例: 若い女性、古い時計"
+                    placeholder="e.g., young woman, old clock"
                   />
                 </div>
                 <div className="element-input">
-                  <label>環境</label>
+                  <label>Environment</label>
                   <input
                     type="text"
                     value={promptElements.environment}
                     onChange={(e) => handleElementChange('environment', e.target.value)}
-                    placeholder="例: 森の中、未来都市"
+                    placeholder="e.g., forest, futuristic city"
                   />
                 </div>
                 <div className="element-input">
-                  <label>雰囲気</label>
+                  <label>When</label>
+                  <input
+                    type="text"
+                    value={promptElements.when}
+                    onChange={(e) => handleElementChange('when', e.target.value)}
+                    placeholder="e.g., sunset, midnight, dawn"
+                  />
+                </div>
+                <div className="element-input">
+                  <label>Action</label>
+                  <input
+                    type="text"
+                    value={promptElements.action}
+                    onChange={(e) => handleElementChange('action', e.target.value)}
+                    placeholder="e.g., running, dancing, floating"
+                  />
+                </div>
+                <div className="element-input">
+                  <label>Mood</label>
                   <input
                     type="text"
                     value={promptElements.mood}
                     onChange={(e) => handleElementChange('mood', e.target.value)}
-                    placeholder="例: 神秘的、明るい"
+                    placeholder="e.g., mysterious, cheerful"
                   />
                 </div>
                 <div className="element-input">
-                  <label>スタイル</label>
+                  <label>Style</label>
                   <input
                     type="text"
                     value={promptElements.style}
                     onChange={(e) => handleElementChange('style', e.target.value)}
-                    placeholder="例: アニメ調、写実的"
+                    placeholder="e.g., anime, photorealistic"
                   />
                 </div>
                 <div className="element-input">
-                  <label>ディテール</label>
+                  <label>Details</label>
                   <input
                     type="text"
                     value={promptElements.details}
                     onChange={(e) => handleElementChange('details', e.target.value)}
-                    placeholder="例: 細かな質感、光の反射"
+                    placeholder="e.g., detailed texture, light reflection"
                   />
                 </div>
                 <div className="element-input">
-                  <label>カラーパレット</label>
+                  <label>Composition</label>
+                  <select
+                    value={promptElements.composition}
+                    onChange={(e) => handleElementChange('composition', e.target.value)}
+                    className="composition-select"
+                  >
+                    {compositions.map(comp => (
+                      <option key={comp.id} value={comp.id}>{comp.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="element-input">
+                  <label>Color Palette</label>
                   <input
                     type="text"
                     value={promptElements.colorPalette}
                     onChange={(e) => handleElementChange('colorPalette', e.target.value)}
-                    placeholder="例: パステルカラー、モノクロ"
+                    placeholder="e.g., pastel colors, monochrome"
                   />
                 </div>
               </div>
