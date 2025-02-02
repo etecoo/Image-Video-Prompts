@@ -154,18 +154,59 @@ class PromptOptimizer:
         """要素ベースのプロンプト生成"""
         prompt_parts = []
         
+        # 主要な要素
         if elements.get('subject'):
             prompt_parts.append(self.translate_to_english(elements['subject']))
         
-        if elements.get('environment'):
-            prompt_parts.append(f"in {self.translate_to_english(elements['environment'])}")
+        if elements.get('action'):
+            prompt_parts.append(self.translate_to_english(elements['action']))
         
+        # 環境と時間
+        environment_parts = []
+        if elements.get('environment'):
+            environment_parts.append(self.translate_to_english(elements['environment']))
+        if elements.get('when'):
+            environment_parts.append(self.translate_to_english(elements['when']))
+        if environment_parts:
+            prompt_parts.append(f"in {', '.join(environment_parts)}")
+        
+        # 雰囲気とスタイル
         if elements.get('mood'):
             prompt_parts.append(f"with {self.translate_to_english(elements['mood'])} mood")
         
         if elements.get('style'):
             prompt_parts.append(f"in {self.translate_to_english(elements['style'])} style")
         
+        # カメラワーク
+        camera_parts = []
+        if elements.get('cameraAngle'):
+            camera_parts.append(f"from {elements['cameraAngle'].replace('_', ' ')}")
+        if elements.get('shotType'):
+            camera_parts.append(elements['shotType'].replace('_', ' '))
+        if elements.get('perspective'):
+            camera_parts.append(f"with {elements['perspective'].replace('_', ' ')}")
+        if camera_parts:
+            prompt_parts.append(f"shot {', '.join(camera_parts)}")
+        
+        # 構図
+        composition_parts = []
+        if elements.get('compositionRule'):
+            composition_parts.append(elements['compositionRule'].replace('_', ' '))
+        if elements.get('compositionTechnique') and elements['compositionTechnique'] != 'none':
+            composition_parts.append(elements['compositionTechnique'].replace('_', ' '))
+        if composition_parts:
+            prompt_parts.append(f"using {', '.join(composition_parts)} composition")
+        
+        # 照明
+        lighting_parts = []
+        if elements.get('lightingDirection'):
+            lighting_parts.append(elements['lightingDirection'].replace('_', ' '))
+        if elements.get('lightingType'):
+            lighting_parts.append(elements['lightingType'].replace('_', ' '))
+        if lighting_parts:
+            prompt_parts.append(f"with {', '.join(lighting_parts)} lighting")
+        
+        # 詳細と色
         if elements.get('details'):
             prompt_parts.append(self.translate_to_english(elements['details']))
         
