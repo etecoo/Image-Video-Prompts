@@ -67,64 +67,26 @@ export const extractMidjourneyParams = (promptText) => {
  * @returns {Object} 構造化されたプロンプトデータ
  */
 export const structurePromptData = (yamlData) => {
-  const structured = {
-    project: null,
-    prompts: []
-  };
-
-  // プロジェクト情報の抽出
-  if (yamlData.src?.['structure.yaml']?.content) {
-    structured.project = {
-      title: yamlData.src['structure.yaml'].content.split('\n')[0],
-      strategy: yamlData.src['structure.yaml'].content
-        .split('\n')
-        .slice(1)
-        .filter(line => line.trim().startsWith('-'))
-        .map(line => line.trim().slice(2)),
-      agent: yamlData.src['structure.yaml'].agent
-    };
+  if (!yamlData) {
+    return { prompts: [], errors: [] };
   }
 
-  // プロンプトの抽出と構造化
-  const extractPromptsRecursively = (obj, path = '') => {
-    if (typeof obj !== 'object' || obj === null) return;
+  const structured = { prompts: [], errors: [] };
+  let promptId = 1;
 
-    Object.entries(obj).forEach(([key, value]) => {
-      const currentPath = path ? `${path}/${key}` : key;
-
-      if (value && typeof value === 'object') {
-        let promptContent = null;
-        let metadata = {};
-
-        if ('content' in value) {
-          promptContent = value.content;
-          metadata = {
-            agent: value.agent,
-            dependency: value.dependency,
-            api: value.api
-          };
-        } else if ('prompt' in value) {
-          promptContent = value.prompt;
-        }
-
-        if (promptContent) {
-          const { prompt, parameters } = extractMidjourneyParams(promptContent);
+  if (yamlData.src) {
+    for (const key in yamlData.src) {
+      if (yamlData.src.hasOwnProperty(key)) {
+        const item = yamlData.src[key];
+        if (item && item.content) {
           structured.prompts.push({
-            id: currentPath,
-            content: prompt,
-            parameters,
-            metadata
+            content: item.content,
+            parameters: item.parameters || {},
+            id: promptId++,
           });
         }
       }
-
-      // オブジェクトを再帰的に探索
-      extractPromptsRecursively(value, currentPath);
-    });
-  };
-
-  if (yamlData.src) {
-    extractPromptsRecursively(yamlData.src);
+    }
   }
 
   return structured;

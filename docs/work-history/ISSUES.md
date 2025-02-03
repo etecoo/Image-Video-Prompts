@@ -1,7 +1,9 @@
 ## 2025-02-03
 ### Resolved
 - `docs/project-context/00-CORE.md` の記述を更新しました。
-  - `frontend/src/utils/yamlParser.js` の説明を修正し、`urashima/urashima-prompts.yaml` の説明を更新しました。
+  - `frontend/src/utils/yamlParser.js` の説明を修正しました。
+  - `frontend/src/utils/yamlParser.js` の `structurePromptData` 関数をプロンプト抽出と構造化のみを行うように変更しました。
+    - プロジェクト情報やメタデータの抽出を削除しました。
   - 関連PR: なし
   - 関連コミット: なし
 # 問題と解決策の記録

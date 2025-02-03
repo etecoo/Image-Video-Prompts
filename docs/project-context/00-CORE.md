@@ -45,8 +45,9 @@
   - 最適化されたスペース利用
 - frontend/src/utils/yamlParser.js:
   - YAMLパース機能
-  - プロンプトとパラメータの分離
-  - `content` または `prompt` プロパティを持つオブジェクトをプロンプトとして処理
+  - プロンプトの抽出と構造化
+  - `content` プロパティを持つオブジェクトからプロンプトを抽出
+  - プロジェクト情報やメタデータの抽出を削除
   - 構造化データの生成
 - backend/app.py:
   - FlaskベースのRESTful API実装
