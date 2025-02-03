@@ -1,5 +1,5 @@
 ## 変更履歴
-- `frontend/src/utils/yamlParser.js` の `structurePromptData` 関数を修正し、`agent` と `api` フィールドを `parameters` に含めるように変更しました。
+- `frontend/src/utils/yamlParser.js` の `structurePromptData` 関数を修正し、`agent` と `api` フィールドを `parameters` に含めるように変更しました。また、YAMLの "content: |-" と "dependency: []" に囲まれたテキストブロック全体を抽出するように変更しました。
   - 関連Issue: `docs/work-history/ISSUES.md` を参照
   - 関連変更履歴: `docs/work-history/CHANGELOG.md` を参照
 # プロンプト生成・変換サービス プロジェクト概要
@@ -37,7 +37,7 @@
     └── urashima-yaml-01        # 神威から生成されたプロンプトテンプレート
 
 ### 重要なファイル
-- frontend/src/App.js: 
+- frontend/src/App.js:
   - メインアプリケーションコンポーネント
   - AIサービスの分類表示（画像/動画）
   - 3セクション構成のプロンプト生成フォーム
@@ -50,8 +50,7 @@
 - frontend/src/utils/yamlParser.js:
   - YAMLパース機能
   - プロンプトの抽出と構造化
-  - `content` プロパティを持つオブジェクトからプロンプトを抽出
-  - プロンプト抽出と構造化のみを行うように変更
+  - `content: | -` と `dependency:` の間のテキストのみを抽出するように変更
   - 構造化データの生成
 - backend/app.py:
   - FlaskベースのRESTful API実装

@@ -12,6 +12,12 @@
     - プロジェクト情報やメタデータの抽出を削除しました。
   - 関連PR: なし
   - 関連コミット: なし
+- `frontend/src/utils/yamlParser.js` を更新し、`Midjourneyプロンプト:` からプロンプトを抽出する機能を追加しました。
+  - 関連PR: なし
+  - 関連コミット: なし
+- `docs/project-context/00-CORE.md` の `frontend/src/utils/yamlParser.js` の説明を更新しました。
+  - 関連PR: なし
+  - 関連コミット: なし
 # 問題と解決策の記録
 
 ## [2025-02-01] Requesty APIの統合

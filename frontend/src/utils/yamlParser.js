@@ -47,22 +47,16 @@ export const structurePromptData = (yamlData) => {
       if (yamlData.src.hasOwnProperty(key)) {
         const item = yamlData.src[key];
         if (item && item.content && key !== 'structure.yaml') {
-          let prompt = "";
-          let contentWithoutPrompt = item.content;
-          const promptMatch = item.content.match(/Midjourneyプロンプト:\s*"(.*?)"/);
-          if (promptMatch) {
-            prompt = promptMatch[1];
-            contentWithoutPrompt = item.content.replace(/Midjourneyプロンプト:\s*"(.*?)"\s*/, '');
-          }
-
-
+          const contentMatch = item.content.match(/content: \|-\s*([\s\S]*?)\s*dependency:/);
+          let originalContent = contentMatch ? contentMatch[1].trim() : item.content.trim();
+          originalContent = originalContent.split('\n').filter(line => !line.trim().startsWith('Agent Selection Reason:')).join('\n').trim();
+          const translatedPrompt = translateToEnglish(originalContent);
+          const parameters = { ...item };
+          delete parameters.content;
           structured.prompts.push({
-            prompt: prompt,
-            content: contentWithoutPrompt,
-            parameters: {
-              agent: item.agent,
-              api: item.api,
-            } || {},
+            prompt: translatedPrompt,
+            content: originalContent,
+            parameters: parameters,
             id: promptId++,
           });
         }
