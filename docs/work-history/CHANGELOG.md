@@ -1,3 +1,6 @@
+## [2025-02-03]
+### 修正
+- `frontend/src/utils/yamlParser.js` の `structurePromptData` 関数を修正し、`agent` と `api` フィールドを `parameters` に含めるように変更しました。
 ## [0.1.0] - 2025-02-03
 ### Changed
 - `docs/project-context/00-CORE.md` を更新し、`frontend/src/utils/yamlParser.js` の説明を修正しました。

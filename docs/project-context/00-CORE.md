@@ -1,3 +1,7 @@
+## 変更履歴
+- `frontend/src/utils/yamlParser.js` の `structurePromptData` 関数を修正し、`agent` と `api` フィールドを `parameters` に含めるように変更しました。
+  - 関連Issue: `docs/work-history/ISSUES.md` を参照
+  - 関連変更履歴: `docs/work-history/CHANGELOG.md` を参照
 # プロンプト生成・変換サービス プロジェクト概要
 
 ## プロジェクト構造

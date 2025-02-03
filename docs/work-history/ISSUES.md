@@ -1,3 +1,9 @@
+## [2025-02-03]
+### `frontend/src/utils/yamlParser.js` の `structurePromptData` 関数における YAML データ構造の不一致
+- **問題:** 提供された YAML データには `parameters` フィールドが存在せず、代わりに `agent` と `api` フィールドが存在していたため、`structurePromptData` 関数が期待どおりに動作していなかった。
+- **解決策:** `structurePromptData` 関数を修正し、`agent` と `api` フィールドを `parameters` に含めるように変更した。
+- **検証:** 修正後、YAML データが正しく構造化されることを確認した。
+- **再発防止策:** 今後、YAML データ構造とコードの期待値が一致しているかを確認するテストを追加する。
 ## 2025-02-03
 ### Resolved
 - `docs/project-context/00-CORE.md` の記述を更新しました。

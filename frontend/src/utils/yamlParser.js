@@ -81,7 +81,10 @@ export const structurePromptData = (yamlData) => {
         if (item && item.content) {
           structured.prompts.push({
             content: item.content,
-            parameters: item.parameters || {},
+            parameters: {
+              agent: item.agent,
+              api: item.api,
+            } || {},
             id: promptId++,
           });
         }
