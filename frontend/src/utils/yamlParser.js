@@ -28,38 +28,6 @@ export const translateToEnglish = (text) => {
   return text + " [English translation]";
 };
 
-/**
- * プロンプトからMidjourneyパラメータを抽出（パラメータは無視し、プロンプト本文のみ抽出）
- * - 複数行の場合（YAMLブロックリテラル対応）は、全行を結合して翻訳後に返す
- * - 単一行の場合は、' --'以降のパラメータ部分を除去して返す
- * @param {string} promptText - プロンプトテキスト
- * @returns {Object} { prompt: プロンプト本文, parameters: {} }
- */
-export const extractMidjourneyParams = (promptText) => {
-  if (promptText.includes('\n')) {
-    // 複数行の場合：全行を結合して英語に翻訳する
-    const lines = promptText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-    const combined = lines.join('\n');
-    const translated = translateToEnglish(combined);
-    return {
-      prompt: translated,
-      parameters: {}
-    };
-  } else {
-    // 単一行の場合：' --' 以降を無視
-    const index = promptText.indexOf(' --');
-    let cleanPrompt;
-    if (index !== -1) {
-      cleanPrompt = promptText.substring(0, index).trim();
-    } else {
-      cleanPrompt = promptText.trim();
-    }
-    return {
-      prompt: cleanPrompt,
-      parameters: {}
-    };
-  }
-};
 
 /**
  * プロンプトデータを構造化
@@ -79,8 +47,18 @@ export const structurePromptData = (yamlData) => {
       if (yamlData.src.hasOwnProperty(key)) {
         const item = yamlData.src[key];
         if (item && item.content && key !== 'structure.yaml') {
+          let prompt = "";
+          let contentWithoutPrompt = item.content;
+          const promptMatch = item.content.match(/Midjourneyプロンプト:\s*"(.*?)"/);
+          if (promptMatch) {
+            prompt = promptMatch[1];
+            contentWithoutPrompt = item.content.replace(/Midjourneyプロンプト:\s*"(.*?)"\s*/, '');
+          }
+
+
           structured.prompts.push({
-            content: item.content,
+            prompt: prompt,
+            content: contentWithoutPrompt,
             parameters: {
               agent: item.agent,
               api: item.api,
