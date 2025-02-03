@@ -69,24 +69,34 @@ export const structurePromptData = (yamlData) => {
   }
 
   // プロンプトの抽出と構造化
-  if (yamlData.src?.['midjourney-prompts']) {
-    const promptFiles = yamlData.src['midjourney-prompts'];
-    
-    Object.entries(promptFiles).forEach(([filename, data]) => {
-      if (data.content && filename.startsWith('prompt')) {
-        const { prompt, parameters } = extractMidjourneyParams(data.content);
+  const extractPromptsRecursively = (obj, path = '') => {
+    if (typeof obj !== 'object' || obj === null) return;
+
+    Object.entries(obj).forEach(([key, value]) => {
+      const currentPath = path ? `${path}/${key}` : key;
+
+      if (value && typeof value === 'object' && 'content' in value) {
+        // contentプロパティを持つオブジェクトをプロンプトとして処理
+        const { prompt, parameters } = extractMidjourneyParams(value.content);
         structured.prompts.push({
-          id: filename,
+          id: currentPath,
           content: prompt,
           parameters,
           metadata: {
-            agent: data.agent,
-            dependency: data.dependency,
-            api: data.api
+            agent: value.agent,
+            dependency: value.dependency,
+            api: value.api
           }
         });
       }
+
+      // オブジェクトを再帰的に探索
+      extractPromptsRecursively(value, currentPath);
     });
+  };
+
+  if (yamlData.src) {
+    extractPromptsRecursively(yamlData.src);
   }
 
   return structured;
