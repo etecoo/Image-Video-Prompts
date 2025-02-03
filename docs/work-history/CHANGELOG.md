@@ -13,6 +13,9 @@
 
 ## [2025-02-03] プロンプト翻訳機能の修正
 
+### 機能改善
+- `frontend/src/utils/yamlParser.js` の `structurePromptData` 関数を修正し、YAMLの "content: |-" と "dependency: []" に囲まれたテキストブロック全体を抽出し、`translateToEnglish` 関数で英訳するように変更しました。
+
 ### バグ修正
 - YAMLパーサーの翻訳機能を復元
   * バックエンドAPIからの翻訳結果を正しく表示
