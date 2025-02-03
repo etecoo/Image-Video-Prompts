@@ -21,27 +21,44 @@ export const parseYaml = (yamlText) => {
 };
 
 /**
- * プロンプトからMidjourneyパラメータを抽出
+ * ダミーの翻訳関数
+ * 実際の翻訳APIに置き換えることが可能です。
+ */
+export const translateToEnglish = (text) => {
+  return text + " [English translation]";
+};
+
+/**
+ * プロンプトからMidjourneyパラメータを抽出（パラメータは無視し、プロンプト本文のみ抽出）
+ * - 複数行の場合（YAMLブロックリテラル対応）は、全行を結合して翻訳後に返す
+ * - 単一行の場合は、' --'以降のパラメータ部分を除去して返す
  * @param {string} promptText - プロンプトテキスト
- * @returns {Object} プロンプト本文とパラメータ
+ * @returns {Object} { prompt: プロンプト本文, parameters: {} }
  */
 export const extractMidjourneyParams = (promptText) => {
-  const params = promptText.match(MIDJOURNEY_PARAM_PATTERN) || [];
-  const cleanPrompt = promptText
-    .replace(MIDJOURNEY_PARAM_PATTERN, '')
-    .replace(/,\s*$/, '')
-    .trim();
-
-  const paramObj = {};
-  params.forEach(param => {
-    const [key, value] = param.split(/\s+/);
-    paramObj[key.slice(2)] = value; // '--'を除去
-  });
-
-  return {
-    prompt: cleanPrompt,
-    parameters: paramObj
-  };
+  if (promptText.includes('\n')) {
+    // 複数行の場合：全行を結合して英語に翻訳する
+    const lines = promptText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+    const combined = lines.join('\n');
+    const translated = translateToEnglish(combined);
+    return {
+      prompt: translated,
+      parameters: {}
+    };
+  } else {
+    // 単一行の場合：' --' 以降を無視
+    const index = promptText.indexOf(' --');
+    let cleanPrompt;
+    if (index !== -1) {
+      cleanPrompt = promptText.substring(0, index).trim();
+    } else {
+      cleanPrompt = promptText.trim();
+    }
+    return {
+      prompt: cleanPrompt,
+      parameters: {}
+    };
+  }
 };
 
 /**
@@ -75,19 +92,30 @@ export const structurePromptData = (yamlData) => {
     Object.entries(obj).forEach(([key, value]) => {
       const currentPath = path ? `${path}/${key}` : key;
 
-      if (value && typeof value === 'object' && 'content' in value) {
-        // contentプロパティを持つオブジェクトをプロンプトとして処理
-        const { prompt, parameters } = extractMidjourneyParams(value.content);
-        structured.prompts.push({
-          id: currentPath,
-          content: prompt,
-          parameters,
-          metadata: {
+      if (value && typeof value === 'object') {
+        let promptContent = null;
+        let metadata = {};
+
+        if ('content' in value) {
+          promptContent = value.content;
+          metadata = {
             agent: value.agent,
             dependency: value.dependency,
             api: value.api
-          }
-        });
+          };
+        } else if ('prompt' in value) {
+          promptContent = value.prompt;
+        }
+
+        if (promptContent) {
+          const { prompt, parameters } = extractMidjourneyParams(promptContent);
+          structured.prompts.push({
+            id: currentPath,
+            content: prompt,
+            parameters,
+            metadata
+          });
+        }
       }
 
       // オブジェクトを再帰的に探索

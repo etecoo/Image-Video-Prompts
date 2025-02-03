@@ -29,7 +29,7 @@
 │   ├── prompt_utils.py         # プロンプト処理ユーティリティ
 │   └── requirements.txt        # Python依存関係
 └── urashima/                   # プロンプトテンプレート
-    ├── urashima-prompts.yaml   # Midjourneyおよびrunway_ml用プロンプト
+    ├── urashima-prompts.yaml   # MidjourneyとRunway MLのプロンプトを含むYAMLファイル
     └── urashima-yaml-01        # 神威から生成されたプロンプトテンプレート
 
 ### 重要なファイル
@@ -46,11 +46,12 @@
 - frontend/src/utils/yamlParser.js:
   - YAMLパース機能
   - プロンプトとパラメータの分離
+  - `content` または `prompt` プロパティを持つオブジェクトをプロンプトとして処理
   - 構造化データの生成
 - backend/app.py:
   - FlaskベースのRESTful API実装
   - プロンプト処理
-  - 要素ベース生成API
+  - 要素ベース生成API: `elements` パラメータを使用してプロンプトを生成する機能
 - backend/prompt_utils.py:
   - プロンプト変換・生成ロジック
   - 要素ベースの生成機能

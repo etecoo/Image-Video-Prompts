@@ -1,3 +1,6 @@
+## [0.1.0] - 2025-02-03
+### Changed
+- `docs/project-context/00-CORE.md` を更新し、`frontend/src/utils/yamlParser.js` の説明を修正し、`urashima/urashima-prompts.yaml` の説明を更新しました。
 # 変更履歴
 
 ## [2025-02-03] プロンプト翻訳機能の修正

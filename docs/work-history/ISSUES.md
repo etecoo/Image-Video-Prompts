@@ -1,3 +1,9 @@
+## 2025-02-03
+### Resolved
+- `docs/project-context/00-CORE.md` の記述を更新しました。
+  - `frontend/src/utils/yamlParser.js` の説明を修正し、`urashima/urashima-prompts.yaml` の説明を更新しました。
+  - 関連PR: なし
+  - 関連コミット: なし
 # 問題と解決策の記録
 
 ## [2025-02-01] Requesty APIの統合
