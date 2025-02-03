@@ -276,7 +276,11 @@ function App() {
                       }
 
                       const data = await response.json();
-                      setPrompts(structuredData.prompts);
+                      setPrompts(data.prompts.map(prompt => ({
+                        content: prompt,
+                        parameters: {},
+                        metadata: { service }
+                      })));
                     } catch (err) {
                       setError(err.message);
                     }
