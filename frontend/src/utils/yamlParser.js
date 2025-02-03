@@ -78,7 +78,7 @@ export const structurePromptData = (yamlData) => {
     for (const key in yamlData.src) {
       if (yamlData.src.hasOwnProperty(key)) {
         const item = yamlData.src[key];
-        if (item && item.content) {
+        if (item && item.content && key !== 'structure.yaml') {
           structured.prompts.push({
             content: item.content,
             parameters: {
