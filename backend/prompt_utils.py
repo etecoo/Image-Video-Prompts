@@ -2,6 +2,7 @@ import yaml
 import json
 from typing import Dict, List, Optional, Union
 import re
+from googletrans import Translator
 import os
 import requests
 import random
@@ -11,6 +12,7 @@ REQUESTY_API_KEY = os.getenv("REQUESTY_API_KEY")
 
 class PromptOptimizer:
     def __init__(self):
+        self.translator = Translator()
         self.service_patterns = {
             'midjourney': '[主要な説明] [スタイル指定] [技術的パラメーター]',
             'imagefx': '[詳細な説明], [スタイル], [色調], [構図], [テクニカル要素]',
@@ -42,7 +44,13 @@ class PromptOptimizer:
         return bool(re.search(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]', text))
 
     def translate_to_english(self, text: str) -> str:
-        return text
+        if not text or not self.is_japanese(text):
+            return text
+        try:
+            return self.translator.translate(text, dest='en').text
+        except Exception as e:
+            print(f"Translation error: {str(e)}")
+            return text
 
     def extract_prompts(self, yaml_data: Union[Dict, List, str]) -> List[str]:
         """YAMLデータから複数のプロンプトを抽出"""
@@ -192,24 +200,34 @@ def load_yaml_content(content):
     except yaml.YAMLError as e:
         raise ValueError(f"YAML解析エラー: {str(e)}")
 
-def optimize_prompt(yaml_data, service='default'):
+def optimize_prompt(yaml_data, service='default') -> Union[str, List[str]]:
     """YAMLデータからプロンプトを生成して最適化"""
     try:
         optimizer = PromptOptimizer()
         
         if isinstance(yaml_data, str):
-            yaml_data = load_yaml_content(yaml_data)
+            try:
+                yaml_data = load_yaml_content(yaml_data)
+            except Exception as e:
+                print(f"YAML解析エラー: {str(e)}")
+                raise
 
         if isinstance(yaml_data, dict) and 'elements' in yaml_data:
-            return optimizer.generate_from_elements(yaml_data['elements'], service)
+            result = optimizer.generate_from_elements(yaml_data['elements'], service)
+            return result if isinstance(result, str) else str(result)
 
         prompts = optimizer.extract_prompts(yaml_data)
         if not prompts:
+            print("プロンプトが見つかりません。入力データ:", yaml_data)
             raise ValueError("有効なプロンプトが見つかりません")
 
-        return [optimizer.optimize_for_service(prompt, service) for prompt in prompts]
+        optimized = [optimizer.optimize_for_service(prompt, service) for prompt in prompts]
+        return optimized
 
     except Exception as e:
+        print(f"optimize_prompt エラー: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
         raise ValueError(f"プロンプト生成エラー: {str(e)}")
 
 def generate_variations(base_prompt: Union[str, Dict], num_variations: int = 1) -> List[str]:
