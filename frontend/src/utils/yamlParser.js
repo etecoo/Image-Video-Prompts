@@ -35,27 +35,25 @@ export const translateToEnglish = (text) => {
  * @returns {Object} 構造化されたプロンプトデータ
  */
 export const structurePromptData = (yamlData) => {
+  const structured = { prompts: [], errors: [] };
+  let promptId = 1;
+
   if (!yamlData || !yamlData.src) {
     return { prompts: [], errors: [] };
   }
 
-  const structured = { prompts: [], errors: [] };
-  let promptId = 1;
+  const srcKeys = Object.keys(yamlData.src);
 
-  for (const key in yamlData.src) {
+  for (const key of srcKeys) {
     if (yamlData.src.hasOwnProperty(key)) {
-      // Check if the key is a prompt category (e.g., "midjourney-prompts")
       const promptCategory = yamlData.src[key];
       if (typeof promptCategory === 'object' && promptCategory !== null) {
-        for (const promptKey in promptCategory) {
+        const promptKeys = Object.keys(promptCategory);
+        for (const promptKey of promptKeys) {
           if (promptCategory.hasOwnProperty(promptKey)) {
             const item = promptCategory[promptKey];
             if (item && item.content) {
-              let originalContent = item.content;
-              const contentMatch = originalContent.match(/content: \|-\s*([\s\S]*?)(\n\s*dependency:|\n\s*$)/);
-              if (contentMatch) {
-                originalContent = contentMatch[1].trim();
-              }
+              const originalContent = item.content;
               const translatedPrompt = translateToEnglish(originalContent);
               const parameters = { ...item };
               delete parameters.content;
