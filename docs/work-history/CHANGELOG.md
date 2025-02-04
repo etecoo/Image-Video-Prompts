@@ -4,8 +4,7 @@
 - `docs/project-context/00-CORE.md` を更新し、`frontend/src/utils/yamlParser.js` の説明を修正しました。
 ## [2025-02-04]
 ### 修正
-- `frontend/src/utils/yamlParser.js` の `structurePromptData` 関数を修正し、`content: | -` と `dependency:` の間のテキストのみを抽出するように変更しました。
-- `frontend/src/utils/yamlParser.js` の `structurePromptData` 関数を修正し、`content: | -` の後に続くテキストから、`Agent Selection Reason:` で始まる行を削除するように変更しました。
+- `frontend/src/utils/yamlParser.js` の `structurePromptData` 関数を修正し、`content: | -` と `dependency:` の間のテキストを抽出、`Agent Selection Reason:` と `agent:` で始まる行を削除するように変更しました。
 ## [2025-02-03]
 ### 修正
 - `frontend/src/utils/yamlParser.js` の `structurePromptData` 関数を修正し、`agent` と `api` フィールドを `parameters` に含めるように変更しました。

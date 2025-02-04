@@ -49,7 +49,8 @@ export const structurePromptData = (yamlData) => {
         if (item && item.content && key !== 'structure.yaml') {
           const contentMatch = item.content.match(/content: \|-\s*([\s\S]*?)\s*dependency:/);
           let originalContent = contentMatch ? contentMatch[1].trim() : item.content.trim();
-          originalContent = originalContent.split('\n').filter(line => !line.trim().startsWith('Agent Selection Reason:')).join('\n').trim();
+          originalContent = originalContent.split('\n').filter(line => !line.trim().startsWith('Agent Selection Reason:') && !line.trim().startsWith('agent:')).join('\n');
+          originalContent = originalContent.trim();
           const translatedPrompt = translateToEnglish(originalContent);
           const parameters = { ...item };
           delete parameters.content;

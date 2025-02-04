@@ -50,7 +50,7 @@
 - frontend/src/utils/yamlParser.js:
   - YAMLパース機能
   - プロンプトの抽出と構造化
-  - `content: | -` と `dependency:` の間のテキストのみを抽出するように変更
+  - `content: | -` と `dependency:` の間のテキストを抽出、`Agent Selection Reason:` と `agent:` で始まる行を削除
   - 構造化データの生成
 - backend/app.py:
   - FlaskベースのRESTful API実装
