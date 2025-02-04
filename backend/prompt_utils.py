@@ -56,18 +56,19 @@ class PromptOptimizer:
         """YAMLデータから複数のプロンプトを抽出"""
         prompts = []
 
-        def extract_nested_prompts(data):
-            if isinstance(data, dict):
-                if 'prompt' in data and isinstance(data['prompt'], str):
-                    prompts.append(data['prompt'])
-                else:
-                    for value in data.values():
-                        extract_nested_prompts(value)
-            elif isinstance(data, list):
-                for item in data:
-                    extract_nested_prompts(item)
+        if not isinstance(yaml_data, dict) or 'src' not in yaml_data:
+            return []
 
-        extract_nested_prompts(yaml_data)
+        src_data = yaml_data['src']
+        
+        # midjourney-promptsからプロンプトを抽出
+        if 'midjourney-prompts' in src_data:
+            midjourney_prompts = src_data['midjourney-prompts']
+            if isinstance(midjourney_prompts, dict):
+                for prompt_data in midjourney_prompts.values():
+                    if isinstance(prompt_data, dict) and 'content' in prompt_data:
+                        prompts.append(prompt_data['content'])
+
         return prompts[:10]  # 最大10個のプロンプトを返す
 
     def extract_prompt(self, yaml_data: Dict) -> str:
