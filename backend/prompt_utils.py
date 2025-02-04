@@ -44,33 +44,6 @@ class PromptOptimizer:
         return bool(re.search(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]', text))
 
     def translate_to_english(self, text: str) -> str:
-        if self.is_japanese(text):
-            try:
-                if not REQUESTY_API_KEY:
-                    raise ValueError("REQUESTY_API_KEY is not set")
-
-                response = requests.post(
-                    f"{REQUESTY_API_ENDPOINT}/translate",
-                    headers={
-                        "Authorization": f"Bearer {REQUESTY_API_KEY}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "text": text,
-                        "source_lang": "ja",
-                        "target_lang": "en"
-                    }
-                )
-
-                if response.status_code == 200:
-                    return response.json()["translated_text"]
-                else:
-                    print(f"Translation API error: {response.text}")
-                    return self.translator.translate(text, src='ja', dest='en').text
-
-            except Exception as e:
-                print(f"Translation error: {e}")
-                return self.translator.translate(text, src='ja', dest='en').text
         return text
 
     def extract_prompts(self, yaml_data: Union[Dict, List, str]) -> List[str]:
