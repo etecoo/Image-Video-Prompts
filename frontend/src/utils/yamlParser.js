@@ -47,16 +47,18 @@ export const structurePromptData = (yamlData) => {
       if (yamlData.src.hasOwnProperty(key)) {
         const item = yamlData.src[key];
         if (item && item.content && key !== 'structure.yaml') {
-          const contentMatch = item.content.match(/プロンプト:\s*([\s\S]*?)(?:\s*ビジュアル要素:|$)/);
+          const contentMatch = item.content.match(/content: \|-\s*([\s\S]*?)\s*dependency:/);
           let originalContent = contentMatch ? contentMatch[1].trim() : '';
           if (!originalContent) {
-            structured.errors.push(`プロンプトが見つかりませんでした: ${key}`);
+            structured.errors.push(`contentが見つかりませんでした: ${key}`);
             continue;
           }
           originalContent = originalContent.split('\n')
-            .filter(line => line.trim() && line.trim() !== 'プロンプト:')
+            .filter(line => !line.trim().startsWith('Agent Selection Reason:') && !line.trim().startsWith('agent:') && line.trim() !== 'プロンプト:')
             .map(line => line.trim().startsWith('- ') ? line.trim().substring(2) : line.trim())
             .join('\n');
+          const promptMatch = originalContent.match(/プロンプト:\s*([\s\S]*?)(?:\s*ビジュアル要素:|$)/);
+          originalContent = promptMatch ? promptMatch[1].trim() : originalContent;
           const translatedPrompt = translateToEnglish(originalContent);
           const parameters = { ...item };
           delete parameters.content;
