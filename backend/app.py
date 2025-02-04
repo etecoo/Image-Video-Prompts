@@ -60,14 +60,22 @@ def convert_prompt():
         service = data.get('service', 'default')
 
         # プロンプトの最適化（複数のプロンプトに対応）
-        optimized_prompts = optimize_prompt(yaml_content, service)
-        
-        # 単一のプロンプトの場合はリストに変換
-        if isinstance(optimized_prompts, str):
-            optimized_prompts = [optimized_prompts]
-        
-        # 最大10個のプロンプトを返す
-        return jsonify({'prompts': optimized_prompts[:10]})
+        try:
+            optimized_prompts = optimize_prompt(yaml_content, service)
+            
+            # 戻り値の型を正規化
+            if isinstance(optimized_prompts, str):
+                optimized_prompts = [optimized_prompts]
+            elif not isinstance(optimized_prompts, list):
+                optimized_prompts = [str(optimized_prompts)]
+            
+            # 最大10個のプロンプトを返す
+            return jsonify({'prompts': optimized_prompts[:10]})
+        except Exception as e:
+            print(f"Error in optimize_prompt: {str(e)}")  # デバッグ用ログ追加
+            import traceback
+            print(traceback.format_exc())  # スタックトレース出力
+            raise
     except Exception as e:
         print(f"Error in convert_prompt: {str(e)}")  # デバッグ用ログ追加
         import traceback
