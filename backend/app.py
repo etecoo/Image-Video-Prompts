@@ -44,6 +44,9 @@ def generate_prompt():
 
         return jsonify({'prompts': variations})
     except Exception as e:
+        print(f"Error in generate_prompt: {str(e)}")  # デバッグ用ログ追加
+        import traceback
+        print(traceback.format_exc())  # スタックトレース出力
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/convert', methods=['POST'])
@@ -66,6 +69,9 @@ def convert_prompt():
         # 最大10個のプロンプトを返す
         return jsonify({'prompts': optimized_prompts[:10]})
     except Exception as e:
+        print(f"Error in convert_prompt: {str(e)}")  # デバッグ用ログ追加
+        import traceback
+        print(traceback.format_exc())  # スタックトレース出力
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
