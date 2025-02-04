@@ -1,61 +1,79 @@
-## [2025-02-03]
-### `frontend/src/utils/yamlParser.js` の `structurePromptData` 関数における YAML データ構造の不一致
-- **問題:** 提供された YAML データには `parameters` フィールドが存在せず、代わりに `agent` と `api` フィールドが存在していたため、`structurePromptData` 関数が期待どおりに動作していなかった。
-- **解決策:** `structurePromptData` 関数を修正し、`agent` と `api` フィールドを `parameters` に含めるように変更した。
-- **検証:** 修正後、YAML データが正しく構造化されることを確認した。
-- **再発防止策:** 今後、YAML データ構造とコードの期待値が一致しているかを確認するテストを追加する。
-## 2025-02-03
-### Resolved
-- `docs/project-context/00-CORE.md` の記述を更新しました。
-  - `frontend/src/utils/yamlParser.js` の説明を修正しました。
-  - `frontend/src/utils/yamlParser.js` の `structurePromptData` 関数をプロンプト抽出と構造化のみを行うように変更しました。
-    - プロジェクト情報やメタデータの抽出を削除しました。
-  - 関連PR: なし
-  - 関連コミット: なし
-- `frontend/src/utils/yamlParser.js` を更新し、`Midjourneyプロンプト:` からプロンプトを抽出する機能を追加しました。
-  - 関連PR: なし
-  - 関連コミット: なし
-- `docs/project-context/00-CORE.md` の `frontend/src/utils/yamlParser.js` の説明を更新しました。
-  - 関連PR: なし
-  - 関連コミット: なし
-# 問題と解決策の記録
+## YAML入力時のPrompt出力順序の問題
 
-## [2025-02-01] Requesty APIの統合
+### 概要
+YAMLを入力した際、`frontend/src/utils/yamlParser.js`が出力するPromptの順序が期待と異なっている。具体的には、Prompt 1とPrompt 2の内容が入れ替わって出力される。
 
-### 要件
-1. 日本語から英語への翻訳機能
-2. APIキーの安全な管理
-3. エラーハンドリングとフォールバック
+### 問題の詳細
+- **入力 (YAML):**
+```yaml
+Ernst Haeckel style super ancient giant anatomy diagram project
+-Comination of scientific arts
+-Fusion of myths and science
+-Corobockle commentary
 
-### 実装方法
-1. API統合
-   - エンドポイント: https://router.requesty.ai/v1
-   - 環境変数: REQUESTY_API_KEY
-   - requestsライブラリによる通信
+Midjourney Prompt generation strategy:
+-Promal artistic scientific description
+-The detailed anatomical accuracy
+-The scientific interpretation of mythical elements
 
-2. デプロイ設定
-   - Railwayの環境変数にREQUESTY_API_KEYを設定
-   - ローカル開発時は.envファイルを使用（オプション）
+Agent Selection Reason: Claude-3-5-Sonnet is
+It is excellent in integrating complex artistic scientific concepts. 
 
-3. エラーハンドリング
-   - API接続エラー時のgoogletransへのフォールバック
-   - エラーログの記録
-   - ユーザーへのフィードバック
+Super ancient civilization research -Kamui/kamui formula 
 
-### 検証項目
-- API接続の確認
-- 翻訳機能の動作確認
-- エラー時のフォールバック確認
+claude-3-5-sonnet-20241022 
 
-### デプロイ手順
-1. Railwayダッシュボードにアクセス
-2. プロジェクトの環境変数設定を開く
-3. 以下の変数を追加:
-   ```
-   REQUESTY_API_KEY=<your_api_key>
-   ```
-4. 変更を保存してデプロイを実行
+midjourney-v6 
 
-## [2025-02-01] プロンプト最適化とUI改善
+Detailed anatomical illustration of an ancient giant's head, 
+in the style of Ernst Haeckel's scientific illustrations. 
+Precise linework, sepia and amber tones, with tiny Koropokkuru 
+scientists explaining each anatomical detail. Hyper-realistic 
+scientific diagram, botanical illustration style, 
+with intricate biological annotations. Vintage scientific 
+journal aesthetic, --ar 3:2 --v 6.0 --q 2 
 
-[以下、既存の内容は変更なし]
+claude-3-5-sonnet-20241022 
+
+midjourney-v6 
+
+Anatomical cross-section of an ancient giant's upper body, 
+rendered in Ernst Haeckel's meticulous scientific illustration 
+style. Detailed skeletal and muscular systems, with miniature 
+Koropokkuru researchers pointing out complex biological 
+structures. Vintage scientific journal aesthetic, 
+sepia and deep green color palette, extreme anatomical precision. 
+--ar 3:2 --v 6.0 --q 2 
+
+src/midjourney-prompts/giant-anatomy-01.txt 
+
+claude-3-5-sonnet-20241022 
+```
+- **期待される出力:**
+  - Prompt 1: Detailed anatomical illustration of an ancient giant's head, 
+in the style of Ernst Haeckel's scientific illustrations. 
+Precise linework, sepia and amber tones, with tiny Koropokkuru 
+scientists explaining each anatomical detail. Hyper-realistic 
+scientific diagram, botanical illustration style, 
+with intricate biological annotations. Vintage scientific 
+journal aesthetic, --ar 3:2 --v 6.0 --q 2
+  - Prompt 2: Anatomical cross-section of an ancient giant's upper body, 
+rendered in Ernst Haeckel's meticulous scientific illustration 
+style. Detailed skeletal and muscular systems, with miniature 
+Koropokkuru researchers pointing out complex biological 
+structures. Vintage scientific journal aesthetic, 
+sepia and deep green color palette, extreme anatomical precision. 
+--ar 3:2 --v 6.0 --q 2
+- **実際の出力:**
+  - Prompt 1: Ernst Haeckel style super ancient giant anatomy diagram project ...
+  - Prompt 2: Super ancient civilization research -Kamui/kamui formula ...
+- **発生箇所:** `frontend/src/utils/yamlParser.js`
+
+### 解決策
+`frontend/src/utils/yamlParser.js`のロジックを修正し、Promptが正しい順序で出力されるようにする。
+
+### 関連ファイル
+- `frontend/src/utils/yamlParser.js`
+
+### 備考
+この問題は、Prompt生成のワークフローを妨げるため、早急な解決が必要。

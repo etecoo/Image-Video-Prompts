@@ -144,7 +144,7 @@ function App() {
           throw new Error('サーバーエラーが発生しました');
         }
 
-        const data = await response.json();
+        await response.json();
         setPrompts(structuredData.prompts);
       } catch (err) {
         setError(err.message);

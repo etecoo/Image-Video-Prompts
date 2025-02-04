@@ -78,17 +78,15 @@ class PromptOptimizer:
         prompts = []
 
         def extract_nested_prompts(data):
-            if isinstance(data, str):
-                prompts.append(data)
+            if isinstance(data, dict):
+                if 'prompt' in data and isinstance(data['prompt'], str):
+                    prompts.append(data['prompt'])
+                else:
+                    for value in data.values():
+                        extract_nested_prompts(value)
             elif isinstance(data, list):
                 for item in data:
                     extract_nested_prompts(item)
-            elif isinstance(data, dict):
-                for value in data.values():
-                    if isinstance(value, dict) and 'prompt' in value:
-                        prompts.append(value['prompt'])
-                    else:
-                        extract_nested_prompts(value)
 
         extract_nested_prompts(yaml_data)
         return prompts[:10]  # 最大10個のプロンプトを返す

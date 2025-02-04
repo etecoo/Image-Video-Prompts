@@ -1,0 +1,157 @@
+src:
+  structure.yaml:
+    content: |-
+      Ernst Haeckelスタイルの超古代巨人解剖図プロジェクト
+      - 科学的芸術性の追求
+      - 神話と科学の融合
+      - コロボックルによる解説
+      
+      Midjourneyプロンプト生成戦略:
+      - 高度な芸術的科学的描写
+      - 詳細な解剖学的正確さ
+      - 神話的要素の科学的解釈
+      
+      agent選定理由: claude-3-5-sonnetは
+      複雑な芸術的科学的コンセプトの統合に優れています。
+    ref: "超古代文明研究 - 神威/KAMUI公式"
+    dependency: []
+    agent: "claude-3-5-sonnet-20241022"
+    api: ["midjourney-v6"]
+
+  midjourney-prompts:
+    giant-anatomy-01.txt:
+      content: |-
+        Detailed anatomical illustration of an ancient giant's head, 
+        in the style of Ernst Haeckel's scientific illustrations. 
+        Precise linework, sepia and amber tones, with tiny Koropokkuru 
+        scientists explaining each anatomical detail. Hyper-realistic 
+        scientific diagram, botanical illustration style, 
+        with intricate biological annotations. Vintage scientific 
+        journal aesthetic, --ar 3:2 --v 6.0 --q 2
+      dependency: []
+      agent: "claude-3-5-sonnet-20241022"
+      api: ["midjourney-v6"]
+
+    giant-anatomy-02.txt:
+      content: |-
+        Anatomical cross-section of an ancient giant's upper body, 
+        rendered in Ernst Haeckel's meticulous scientific illustration 
+        style. Detailed skeletal and muscular systems, with miniature 
+        Koropokkuru researchers pointing out complex biological 
+        structures. Vintage scientific journal aesthetic, 
+        sepia and deep green color palette, extreme anatomical precision. 
+        --ar 3:2 --v 6.0 --q 2
+      dependency: 
+        - src/midjourney-prompts/giant-anatomy-01.txt
+      agent: "claude-3-5-sonnet-20241022"
+      api: ["midjourney-v6"]
+
+    giant-anatomy-03.txt:
+      content: |-
+        Neurological system of an ancient giant, illustrated 
+        with Ernst Haeckel's botanical illustration techniques. 
+        Intricate neural network mapped out like complex plant 
+        structures, with tiny Koropokkuru scientists examining 
+        each synapse and neural pathway. Vintage scientific 
+        journal style, amber and deep green tones, 
+        hyper-detailed biological mapping. --ar 3:2 --v 6.0 --q 2
+      dependency: 
+        - src/midjourney-prompts/giant-anatomy-02.txt
+      agent: "claude-3-5-sonnet-20241022"
+      api: ["midjourney-v6"]
+
+    giant-anatomy-04.txt:
+      content: |-
+        Circulatory system of an ancient giant, drawn with 
+        Ernst Haeckel's precision and scientific artistry. 
+        Blood vessels mapped like intricate root systems, 
+        Koropokkuru researchers examining each capillary 
+        and blood flow pattern. Sepia and amber color scheme, 
+        vintage scientific illustration aesthetic. 
+        --ar 3:2 --v 6.0 --q 2
+      dependency: 
+        - src/midjourney-prompts/giant-anatomy-03.txt
+      agent: "claude-3-5-sonnet-20241022"
+      api: ["midjourney-v6"]
+
+    giant-anatomy-05.txt:
+      content: |-
+        Digestive system of an ancient giant, illustrated 
+        with botanical precision reminiscent of Ernst Haeckel. 
+        Organs mapped like complex plant ecosystems, 
+        Koropokkuru scientists exploring each digestive chamber. 
+        Deep green and sepia tones, hyper-detailed biological 
+        mapping, vintage scientific journal style. 
+        --ar 3:2 --v 6.0 --q 2
+      dependency: 
+        - src/midjourney-prompts/giant-anatomy-04.txt
+      agent: "claude-3-5-sonnet-20241022"
+      api: ["midjourney-v6"]
+
+    giant-anatomy-06.txt:
+      content: |-
+        Respiratory system of an ancient giant, drawn with 
+        Ernst Haeckel's meticulous scientific illustration 
+        technique. Lungs and bronchial structures mapped 
+        like intricate botanical drawings, Koropokkuru 
+        researchers examining each air passage. 
+        Amber and deep green color palette, vintage 
+        scientific precision. --ar 3:2 --v 6.0 --q 2
+      dependency: 
+        - src/midjourney-prompts/giant-anatomy-05.txt
+      agent: "claude-3-5-sonnet-20241022"
+      api: ["midjourney-v6"]
+
+    giant-anatomy-07.txt:
+      content: |-
+        Muscular anatomy of an ancient giant, illustrated 
+        in Ernst Haeckel's scientific style. Muscle groups 
+        mapped like complex botanical structures, 
+        Koropokkuru scientists measuring and annotating 
+        each muscle fiber. Sepia and amber tones, 
+        hyper-detailed biological mapping. 
+        --ar 3:2 --v 6.0 --q 2
+      dependency: 
+        - src/midjourney-prompts/giant-anatomy-06.txt
+      agent: "claude-3-5-sonnet-20241022"
+      api: ["midjourney-v6"]
+
+    giant-anatomy-08.txt:
+      content: |-
+        Skeletal structure of an ancient giant, rendered 
+        with Ernst Haeckel's botanical illustration precision. 
+        Bones mapped like intricate plant root systems, 
+        Koropokkuru researchers examining joint structures. 
+        Deep green and sepia color scheme, vintage scientific 
+        journal aesthetic. --ar 3:2 --v 6.0 --q 2
+      dependency: 
+        - src/midjourney-prompts/giant-anatomy-07.txt
+      agent: "claude-3-5-sonnet-20241022"
+      api: ["midjourney-v6"]
+
+    giant-anatomy-09.txt:
+      content: |-
+        Endocrine system of an ancient giant, illustrated 
+        with Ernst Haeckel's scientific artistry. Hormone 
+        pathways mapped like complex botanical networks, 
+        Koropokkuru scientists tracking each glandular interaction. 
+        Amber and deep green tones, hyper-detailed biological mapping. 
+        --ar 3:2 --v 6.0 --q 2
+      dependency: 
+        - src/midjourney-prompts/giant-anatomy-08.txt
+      agent: "claude-3-5-sonnet-20241022"
+      api: ["midjourney-v6"]
+
+    giant-anatomy-10.txt:
+      content: |-
+        Complete anatomical overview of an ancient giant, 
+        drawn in Ernst Haeckel's comprehensive scientific 
+        illustration style. Full body mapped with botanical 
+        precision, Koropokkuru researchers presenting 
+        a holistic view of giant biology. Sepia, amber, 
+        and deep green color palette, vintage scientific 
+        journal aesthetic. --ar 3:2 --v 6.0 --q 2
+      dependency: 
+        - src/midjourney-prompts/giant-anatomy-09.txt
+      agent: "claude-3-5-sonnet-20241022"
+      api: ["midjourney-v6"]

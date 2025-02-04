@@ -1,9 +1,9 @@
 import yaml from 'js-yaml';
 
 /**
- * Midjourneyパラメータを抽出する正規表現パターン
+ *
  */
-const MIDJOURNEY_PARAM_PATTERN = /--(?:ar|v|style|q|s)\s+[^\s,]+/g;
+
 
 /**
  * YAMLテキストをJavaScriptオブジェクトに変換
@@ -42,37 +42,51 @@ export const structurePromptData = (yamlData) => {
     return { prompts: [], errors: [] };
   }
 
-  const srcKeys = Object.keys(yamlData.src);
+  const srcEntries = Object.entries(yamlData.src);
+  const midjourneyPrompts = [];
 
-  for (const key of srcKeys) {
-    if (yamlData.src.hasOwnProperty(key)) {
-      const promptCategory = yamlData.src[key];
-      if (typeof promptCategory === 'object' && promptCategory !== null) {
-        const promptKeys = Object.keys(promptCategory);
-        for (const promptKey of promptKeys) {
-          if (promptCategory.hasOwnProperty(promptKey)) {
-            const item = promptCategory[promptKey];
-            if (item && item.content) {
-              const originalContent = item.content;
-              const translatedPrompt = translateToEnglish(originalContent);
-              const parameters = { ...item };
-              delete parameters.content;
-              structured.prompts.push({
-                prompt: translatedPrompt,
-                content: originalContent,
-                parameters: parameters,
-                id: promptId++,
-              });
-            } else {
-              structured.errors.push(`contentが見つかりませんでした: ${key} - ${promptKey}`);
-            }
-          }
+  // midjourney-promptsのcontentを順番に取得
+  for (const [key, promptCategory] of srcEntries) {
+    if (key === 'midjourney-prompts' && typeof promptCategory === 'object' && promptCategory !== null) {
+      for (const promptKey of Object.keys(promptCategory)) {
+        const item = promptCategory[promptKey];
+        if (item && item.content) {
+          midjourneyPrompts.push(item.content);
+        } else {
+          structured.errors.push(`contentが見つかりませんでした: ${key} - ${promptKey}`);
         }
-      } else {
-        structured.errors.push(`プロンプトカテゴリではありません: ${key}`);
       }
     }
   }
+
+  // structure.yamlのcontentを先頭に追加
+  for (const [key, promptCategory] of srcEntries) {
+    if (key === 'structure.yaml' && typeof promptCategory === 'object' && promptCategory !== null) {
+      for (const promptKey of Object.keys(promptCategory)) {
+        const item = promptCategory[promptKey];
+        if (item && item.content) {
+          structured.prompts.push({
+            prompt: item.content,
+            content: item.content,
+            parameters: {},
+            id: promptId++,
+          });
+        } else {
+          structured.errors.push(`contentが見つかりませんでした: ${key} - ${promptKey}`);
+        }
+      }
+    }
+  }
+
+  // midjourney-promptsのcontentを順番に追加
+  midjourneyPrompts.forEach(content => {
+    structured.prompts.push({
+      prompt: translateToEnglish(content),
+      content: content,
+      parameters: {},
+      id: promptId++,
+    });
+  });
 
   return structured;
 };
