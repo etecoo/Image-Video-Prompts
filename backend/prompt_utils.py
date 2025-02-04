@@ -2,7 +2,6 @@ import yaml
 import json
 from typing import Dict, List, Optional, Union
 import re
-from googletrans import Translator
 import os
 import requests
 import random
@@ -12,7 +11,6 @@ REQUESTY_API_KEY = os.getenv("REQUESTY_API_KEY")
 
 class PromptOptimizer:
     def __init__(self):
-        self.translator = Translator()
         self.service_patterns = {
             'midjourney': '[主要な説明] [スタイル指定] [技術的パラメーター]',
             'imagefx': '[詳細な説明], [スタイル], [色調], [構図], [テクニカル要素]',
