@@ -44,24 +44,34 @@ export const structurePromptData = (yamlData) => {
 
   for (const key in yamlData.src) {
     if (yamlData.src.hasOwnProperty(key)) {
-      const item = yamlData.src[key];
-      if (item && item.content) {
-        let originalContent = item.content;
-        const contentMatch = originalContent.match(/content: \|-\s*([\s\S]*?)\s*dependency:/);
-        if (contentMatch) {
-          originalContent = contentMatch[1].trim();
+      // Check if the key is a prompt category (e.g., "midjourney-prompts")
+      const promptCategory = yamlData.src[key];
+      if (typeof promptCategory === 'object' && promptCategory !== null) {
+        for (const promptKey in promptCategory) {
+          if (promptCategory.hasOwnProperty(promptKey)) {
+            const item = promptCategory[promptKey];
+            if (item && item.content) {
+              let originalContent = item.content;
+              const contentMatch = originalContent.match(/content: \|-\s*([\s\S]*?)(\n\s*dependency:|\n\s*$)/);
+              if (contentMatch) {
+                originalContent = contentMatch[1].trim();
+              }
+              const translatedPrompt = translateToEnglish(originalContent);
+              const parameters = { ...item };
+              delete parameters.content;
+              structured.prompts.push({
+                prompt: translatedPrompt,
+                content: originalContent,
+                parameters: parameters,
+                id: promptId++,
+              });
+            } else {
+              structured.errors.push(`contentが見つかりませんでした: ${key} - ${promptKey}`);
+            }
+          }
         }
-        const translatedPrompt = translateToEnglish(originalContent);
-        const parameters = { ...item };
-        delete parameters.content;
-        structured.prompts.push({
-          prompt: translatedPrompt,
-          content: originalContent,
-          parameters: parameters,
-          id: promptId++,
-        });
       } else {
-        structured.errors.push(`contentが見つかりませんでした: ${key}`);
+        structured.errors.push(`プロンプトカテゴリではありません: ${key}`);
       }
     }
   }
