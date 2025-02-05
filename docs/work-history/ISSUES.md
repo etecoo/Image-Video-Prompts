@@ -77,3 +77,44 @@ sepia and deep green color palette, extreme anatomical precision.
 
 ### 備考
 この問題は、Prompt生成のワークフローを妨げるため、早急な解決が必要。
+
+## YAML入力時の翻訳機能の問題
+
+### 概要
+YAMLを入力したときに、不要な部分がPromptとして出力され、また日本語の翻訳機能が動作しない問題が発生。
+
+### 問題の詳細
+1. YAMLファイルから`midjourney-prompts`以外の部分も抽出されてしまう
+2. 日本語のプロンプトが英語に翻訳されない
+
+### 原因
+1. `prompt_utils.py`の`extract_prompts`メソッドがYAMLの構造を正しく解析していなかった
+2. `googletrans`の設定が正しく行われていなかった
+
+### 解決策
+1. `extract_prompts`メソッドを修正し、`midjourney-prompts`のコンテンツのみを抽出するように変更
+```python
+def extract_prompts(self, yaml_data: Union[Dict, List, str]) -> List[str]:
+    prompts = []
+    if not isinstance(yaml_data, dict) or 'src' not in yaml_data:
+        return []
+    src_data = yaml_data['src']
+    if 'midjourney-prompts' in src_data:
+        midjourney_prompts = src_data['midjourney-prompts']
+        if isinstance(midjourney_prompts, dict):
+            for prompt_data in midjourney_prompts.values():
+                if isinstance(prompt_data, dict) and 'content' in prompt_data:
+                    prompts.append(prompt_data['content'])
+    return prompts[:10]
+```
+
+2. `googletrans`の設定を復活
+- `requirements.txt`に`googletrans==3.1.0a0`を追加
+- `prompt_utils.py`で`Translator`クラスの初期化を正しく設定
+
+### 関連ファイル
+- `backend/prompt_utils.py`
+- `backend/requirements.txt`
+
+### 備考
+この修正により、YAMLファイルから正しくプロンプトが抽出され、日本語のプロンプトが英語に翻訳されるようになった。
