@@ -60,27 +60,55 @@ def convert_prompt():
         service = data.get('service', 'default')
 
         # プロンプトの最適化（複数のプロンプトに対応）
+        # リクエストの詳細をログ出力
+        print("=== Request Details ===")
+        print(f"Request Data: {data}")
+        print(f"YAML Content: {yaml_content}")
+        print(f"Service: {service}")
+        
         try:
+            # 最適化処理の実行とログ出力
+            print("=== Optimization Process ===")
             optimized_prompts = optimize_prompt(yaml_content, service)
+            print(f"Optimized Prompts: {optimized_prompts}")
             
-            # 戻り値の型を正規化
+            # レスポンスの正規化とログ出力
+            print("=== Response Normalization ===")
             if isinstance(optimized_prompts, str):
                 optimized_prompts = [optimized_prompts]
             elif not isinstance(optimized_prompts, list):
                 optimized_prompts = [str(optimized_prompts)]
+            print(f"Normalized Prompts: {optimized_prompts}")
             
-            # 最大10個のプロンプトを返す
-            return jsonify({'prompts': optimized_prompts[:10]})
+            # 最終レスポンスの作成
+            response = {'prompts': optimized_prompts[:10]}
+            print(f"Final Response: {response}")
+            return jsonify(response)
+            
         except Exception as e:
-            print(f"Error in optimize_prompt: {str(e)}")  # デバッグ用ログ追加
-            import traceback
-            print(traceback.format_exc())  # スタックトレース出力
+            print("\n=== Error Details ===")
+            print(f"Error Type: {type(e).__name__}")
+            print(f"Error Message: {str(e)}")
+            import traceback, sys
+            print("\n=== Full Traceback ===")
+            traceback.print_exc(file=sys.stdout)
+            print("\n=== Environment ===")
+            print(f"Python Version: {sys.version}")
+            print(f"Environment Variables: {dict(os.environ)}")
             raise
+            
     except Exception as e:
-        print(f"Error in convert_prompt: {str(e)}")  # デバッグ用ログ追加
-        import traceback
-        print(traceback.format_exc())  # スタックトレース出力
-        return jsonify({'error': str(e)}), 500
+        print("\n=== Request Error ===")
+        print(f"Error Type: {type(e).__name__}")
+        print(f"Error Message: {str(e)}")
+        import traceback, sys
+        print("\n=== Full Traceback ===")
+        traceback.print_exc(file=sys.stdout)
+        return jsonify({
+            'error': str(e),
+            'error_type': type(e).__name__,
+            'traceback': traceback.format_exc()
+        }), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8000)))
