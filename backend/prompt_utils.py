@@ -251,13 +251,26 @@ def optimize_prompt(yaml_data, service='default') -> Union[str, List[str]]:
                 print(f"YAML解析エラー: {str(e)}")
                 raise
 
+        # 'yaml'キーがある場合はその中身を使用
+        if isinstance(yaml_data, dict) and 'yaml' in yaml_data:
+            yaml_data = yaml_data['yaml']
+            print(f"Using content from 'yaml' key: {type(yaml_data)}")
+
         if isinstance(yaml_data, dict) and 'elements' in yaml_data:
             result = optimizer.generate_from_elements(yaml_data['elements'], service)
             return result if isinstance(result, str) else str(result)
 
         prompts = optimizer.extract_prompts(yaml_data)
         if not prompts:
-            print("プロンプトが見つかりません。入力データ:", yaml_data)
+            print("プロンプトが見つかりません。入力データ構造:")
+            print(f"Keys at root level: {list(yaml_data.keys() if isinstance(yaml_data, dict) else [])}")
+            if isinstance(yaml_data, dict) and 'src' in yaml_data:
+                src_data = yaml_data['src']
+                print(f"Keys in src: {list(src_data.keys())}")
+                if 'structure.yaml' in src_data:
+                    print(f"structure.yaml content available: {bool(src_data['structure.yaml'])}")
+                if 'images' in src_data:
+                    print(f"Number of images: {len(src_data['images'])}")
             raise ValueError("有効なプロンプトが見つかりません")
 
         optimized = [optimizer.optimize_for_service(prompt, service) for prompt in prompts]
