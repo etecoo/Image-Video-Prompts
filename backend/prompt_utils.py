@@ -47,7 +47,21 @@ class PromptOptimizer:
         if not text or not self.is_japanese(text):
             return text
         try:
-            return self.translator.translate(text, dest='en').text
+            # 翻訳の試行回数を制限
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    # 新しいTranslatorインスタンスを作成
+                    translator = Translator()
+                    result = translator.translate(text, dest='en')
+                    return result.text
+                except Exception as e:
+                    print(f"Translation attempt {attempt + 1} failed: {str(e)}")
+                    if attempt < max_retries - 1:
+                        continue
+                    else:
+                        print(f"All translation attempts failed for text: {text}")
+                        return text
         except Exception as e:
             print(f"Translation error: {str(e)}")
             return text
