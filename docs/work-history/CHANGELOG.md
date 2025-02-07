@@ -1,3 +1,9 @@
+## [2025-02-07]
+### 修正
+- `frontend/src/utils/yamlParser.js`の翻訳機能を修正し、バックエンドの翻訳APIを使用するように変更しました。
+  * 不要な`translateToEnglish`関数を削除
+  * プロンプトの翻訳処理をバックエンドに委譲
+
 ## [2025-02-04]
 ### 修正
 - `frontend/src/utils/yamlParser.js` の `structurePromptData` 関数を修正し、`agent` と `api` フィールドを `parameters` に含めるように変更しました。

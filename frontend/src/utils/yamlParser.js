@@ -21,15 +21,6 @@ export const parseYaml = (yamlText) => {
 };
 
 /**
- * ダミーの翻訳関数
- * 実際の翻訳APIに置き換えることが可能です。
- */
-export const translateToEnglish = (text) => {
-  return text + " [English translation]";
-};
-
-
-/**
  * プロンプトデータを構造化
  * @param {Object} yamlData - パースされたYAMLデータ
  * @returns {Object} 構造化されたプロンプトデータ
@@ -81,7 +72,7 @@ export const structurePromptData = (yamlData) => {
   // midjourney-promptsのcontentを順番に追加
   midjourneyPrompts.forEach(content => {
     structured.prompts.push({
-      prompt: translateToEnglish(content),
+      prompt: content,
       content: content,
       parameters: {},
       id: promptId++,
