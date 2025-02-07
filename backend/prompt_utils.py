@@ -2,7 +2,6 @@ import yaml
 import json
 from typing import Dict, List, Optional, Union
 import re
-from googletrans import Translator
 import os
 import requests
 import random
