@@ -87,8 +87,16 @@ class PromptOptimizer:
     
             src_data = yaml_data['src']
             
-            # imagesセクションからプロンプトを抽出
-            if 'images' in src_data:
+            # 1. midjourney-promptsからの抽出
+            if 'midjourney-prompts' in src_data:
+                midjourney_prompts = src_data['midjourney-prompts']
+                if isinstance(midjourney_prompts, dict):
+                    for prompt_data in midjourney_prompts.values():
+                        if isinstance(prompt_data, dict) and 'content' in prompt_data:
+                            prompts.append(prompt_data['content'])
+    
+            # 2. imagesセクションからの抽出
+            if 'images' in src_data and not prompts:  # midjourney-promptsが無い場合のみ
                 images = src_data['images']
                 if isinstance(images, dict):
                     for image_data in images.values():
@@ -96,23 +104,25 @@ class PromptOptimizer:
                             content = image_data['content']
                             # プロンプトセクションを抽出
                             if 'プロンプト:' in content:
-                                prompt_section = content.split('プロンプト:')[1]
-                                if '詳細仕様:' in prompt_section:
-                                    prompt_section = prompt_section.split('詳細仕様:')[0]
-                                # 箇条書きの各項目を結合
-                                prompt_lines = [line.strip('- ').strip() for line in prompt_section.strip().split('\n') if line.strip()]
-                                prompt = ', '.join(prompt_lines)
-                                prompts.append(prompt)
+                                sections = content.split('プロンプト:')[1].split('\n')
+                                prompt_lines = []
+                                for line in sections:
+                                    line = line.strip()
+                                    if not line or line.startswith('詳細仕様:'):
+                                        break
+                                    if line.startswith('-'):
+                                        prompt_lines.append(line[1:].strip())
+                                if prompt_lines:
+                                    prompt = ', '.join(prompt_lines)
+                                    prompts.append(prompt)
     
             if not prompts:
-                print(f"Available keys in src_data: {list(src_data.keys())}")
+                print("プロンプトが見つかりません。データ構造を確認:")
+                print(f"src_data keys: {list(src_data.keys())}")
+                if 'midjourney-prompts' in src_data:
+                    print("midjourney-prompts section found")
                 if 'images' in src_data:
-                    print(f"Number of images: {len(src_data['images'])}")
-                    for name, data in src_data['images'].items():
-                        if isinstance(data, dict) and 'content' in data:
-                            print(f"Content structure for {name}:")
-                            content_lines = data['content'].split('\n')
-                            print(f"First few lines: {content_lines[:3]}")
+                    print(f"images section found with {len(src_data['images'])} entries")
     
             return prompts[:10]  # 最大10個のプロンプトを返す
     def extract_prompt(self, yaml_data: Dict) -> str:
