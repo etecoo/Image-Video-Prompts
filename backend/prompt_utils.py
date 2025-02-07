@@ -42,61 +42,73 @@ class PromptOptimizer:
         return bool(re.search(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]', text))
 
     def translate_to_english(self, text: str) -> str:
-        def translate_to_english(self, text: str) -> str:
-            """
-            日本語テキストを英語に翻訳する
-            requestsを使用して直接Google Translate APIを呼び出す
-            """
-            if not text or not self.is_japanese(text):
-                return text
-    
-            try:
-                url = "https://translate.googleapis.com/translate_a/single"
-                params = {
-                    "client": "gtx",
-                    "sl": "ja",
-                    "tl": "en",
-                    "dt": "t",
-                    "q": text
-                }
-                
-                response = requests.get(url, params=params)
-                if response.status_code == 200:
-                    try:
-                        result = response.json()
-                        if result and isinstance(result, list) and len(result) > 0:
-                            translations = result[0]
-                            translated_text = ' '.join(t[0] for t in translations if t and len(t) > 0)
-                            return translated_text
-                    except Exception as e:
-                        print(f"Translation parsing error: {str(e)}")
-                        return text
-                else:
-                    print(f"Translation request failed with status code: {response.status_code}")
+        """
+        日本語テキストを英語に翻訳する
+        requestsを使用して直接Google Translate APIを呼び出す
+        """
+        if not text or not self.is_japanese(text):
+            return text
+
+        try:
+            url = "https://translate.googleapis.com/translate_a/single"
+            params = {
+                "client": "gtx",
+                "sl": "ja",
+                "tl": "en",
+                "dt": "t",
+                "q": text
+            }
+            
+            response = requests.get(url, params=params)
+            if response.status_code == 200:
+                try:
+                    result = response.json()
+                    if result and isinstance(result, list) and len(result) > 0:
+                        translations = result[0]
+                        translated_text = ' '.join(t[0] for t in translations if t and len(t) > 0)
+                        return translated_text
+                except Exception as e:
+                    print(f"Translation parsing error: {str(e)}")
                     return text
-    
-            except Exception as e:
-                print(f"Translation error: {str(e)}")
+            else:
+                print(f"Translation request failed with status code: {response.status_code}")
                 return text
+
+        except Exception as e:
+            print(f"Translation error: {str(e)}")
+            return text
     def extract_prompts(self, yaml_data: Union[Dict, List, str]) -> List[str]:
-        """YAMLデータから複数のプロンプトを抽出"""
-        prompts = []
-
-        if not isinstance(yaml_data, dict) or 'src' not in yaml_data:
-            return []
-
-        src_data = yaml_data['src']
-        
-        # midjourney-promptsからプロンプトを抽出
-        if 'midjourney-prompts' in src_data:
-            midjourney_prompts = src_data['midjourney-prompts']
-            if isinstance(midjourney_prompts, dict):
-                for prompt_data in midjourney_prompts.values():
-                    if isinstance(prompt_data, dict) and 'content' in prompt_data:
-                        prompts.append(prompt_data['content'])
-
-        return prompts[:10]  # 最大10個のプロンプトを返す
-
+        def extract_prompts(self, yaml_data: Union[Dict, List, str]) -> List[str]:
+            """YAMLデータから複数のプロンプトを抽出"""
+            prompts = []
+    
+            if not isinstance(yaml_data, dict) or 'src' not in yaml_data:
+                return []
+    
+            src_data = yaml_data['src']
+            
+            # structure.yamlからプロンプトを抽出
+            if 'structure.yaml' in src_data:
+                structure = src_data['structure.yaml']
+                if isinstance(structure, dict) and 'content' in structure:
+                    prompts.append(structure['content'])
+    
+            # imagesセクションからプロンプトを抽出
+            if 'images' in src_data:
+                images = src_data['images']
+                if isinstance(images, dict):
+                    for image_data in images.values():
+                        if isinstance(image_data, dict) and 'content' in image_data:
+                            prompts.append(image_data['content'])
+    
+            if not prompts:
+                print(f"Available keys in src_data: {list(src_data.keys())}")
+                if 'structure.yaml' in src_data:
+                    print(f"structure.yaml content: {src_data['structure.yaml']}")
+                if 'images' in src_data:
+                    print(f"Number of images: {len(src_data['images'])}")
+    
+            return prompts[:10]  # 最大10個のプロンプトを返す
     def extract_prompt(self, yaml_data: Dict) -> str:
         """YAMLデータから単一のプロンプトを抽出"""
         if isinstance(yaml_data, str):
