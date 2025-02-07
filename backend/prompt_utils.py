@@ -12,7 +12,6 @@ REQUESTY_API_KEY = os.getenv("REQUESTY_API_KEY")
 
 class PromptOptimizer:
     def __init__(self):
-        self.translator = Translator()
         self.service_patterns = {
             'midjourney': '[主要な説明] [スタイル指定] [技術的パラメーター]',
             'imagefx': '[詳細な説明], [スタイル], [色調], [構図], [テクニカル要素]',
@@ -44,27 +43,35 @@ class PromptOptimizer:
         return bool(re.search(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]', text))
 
     def translate_to_english(self, text: str) -> str:
+        """
+        日本語テキストを英語に翻訳する
+        各翻訳試行で新しいTranslatorインスタンスを使用
+        """
         if not text or not self.is_japanese(text):
             return text
-        try:
-            # 翻訳の試行回数を制限
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    # 新しいTranslatorインスタンスを作成
-                    translator = Translator()
-                    result = translator.translate(text, dest='en')
+
+        max_retries = 3
+        delay_seconds = 1
+
+        for attempt in range(max_retries):
+            try:
+                # 新しいTranslatorインスタンスを作成
+                translator = Translator(service_urls=['translate.google.com'])
+                result = translator.translate(text, dest='en')
+                if result and result.text:
                     return result.text
-                except Exception as e:
-                    print(f"Translation attempt {attempt + 1} failed: {str(e)}")
-                    if attempt < max_retries - 1:
-                        continue
-                    else:
-                        print(f"All translation attempts failed for text: {text}")
-                        return text
-        except Exception as e:
-            print(f"Translation error: {str(e)}")
-            return text
+            except Exception as e:
+                print(f"Translation attempt {attempt + 1} failed: {str(e)}")
+                if attempt < max_retries - 1:
+                    import time
+                    time.sleep(delay_seconds)  # 次の試行前に待機
+                    delay_seconds *= 2  # 待機時間を指数的に増加
+                    continue
+                else:
+                    print(f"All translation attempts failed for text: {text}")
+                    return text  # 最後の試行が失敗した場合は原文を返す
+
+        return text
 
     def extract_prompts(self, yaml_data: Union[Dict, List, str]) -> List[str]:
         """YAMLデータから複数のプロンプトを抽出"""
