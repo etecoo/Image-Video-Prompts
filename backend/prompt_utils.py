@@ -276,19 +276,52 @@ def optimize_prompt(yaml_data, service='default') -> Union[str, List[str]]:
             result = optimizer.generate_from_elements(yaml_data['elements'], service)
             return result if isinstance(result, str) else str(result)
 
-        prompts = optimizer.extract_prompts(yaml_data)
+        # imagesセクションからプロンプトを抽出
+        prompts = []
+        if isinstance(yaml_data, dict) and 'src' in yaml_data:
+            src_data = yaml_data['src']
+            if 'images' in src_data:
+                images = src_data['images']
+                if isinstance(images, dict):
+                    for image_data in images.values():
+                        if isinstance(image_data, dict) and 'content' in image_data:
+                            content = image_data['content']
+                            if 'プロンプト:' in content:
+                                # プロンプトセクションを抽出
+                                prompt_lines = []
+                                in_prompt_section = False
+                                for line in content.split('\n'):
+                                    line = line.strip()
+                                    if line.startswith('プロンプト:'):
+                                        in_prompt_section = True
+                                        continue
+                                    elif line.startswith('詳細仕様:'):
+                                        in_prompt_section = False
+                                        break
+                                    elif in_prompt_section and line.startswith('-'):
+                                        prompt_lines.append(line[1:].strip())
+                                if prompt_lines:
+                                    prompt = ', '.join(prompt_lines)
+                                    prompts.append(prompt)
+
         if not prompts:
-            print("プロンプトが見つかりません。入力データ構造:")
+            print("プロンプトが見つかりません。データ構造を確認:")
             print(f"Keys at root level: {list(yaml_data.keys() if isinstance(yaml_data, dict) else [])}")
             if isinstance(yaml_data, dict) and 'src' in yaml_data:
                 src_data = yaml_data['src']
                 print(f"Keys in src: {list(src_data.keys())}")
-                if 'structure.yaml' in src_data:
-                    print(f"structure.yaml content available: {bool(src_data['structure.yaml'])}")
                 if 'images' in src_data:
-                    print(f"Number of images: {len(src_data['images'])}")
+                    print(f"Found {len(src_data['images'])} images")
+                    for name, data in src_data['images'].items():
+                        if isinstance(data, dict) and 'content' in data:
+                            content = data['content']
+                            print(f"\nImage {name} content preview:")
+                            print(content.split('\n')[0])
+                            if 'プロンプト:' in content:
+                                print("Contains プロンプト section")
             raise ValueError("有効なプロンプトが見つかりません")
 
+        # プロンプトを最適化
         optimized = [optimizer.optimize_for_service(prompt, service) for prompt in prompts]
         return optimized
 
