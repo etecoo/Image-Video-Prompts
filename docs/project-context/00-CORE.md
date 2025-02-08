@@ -1,170 +1,78 @@
-## 変更履歴
-- `frontend/src/utils/yamlParser.js` の `structurePromptData` 関数を修正し、`agent` と `api` フィールドを `parameters` に含めるように変更しました。また、YAMLの "content: |-" と "dependency: []" に囲まれたテキストブロック全体を抽出するように変更しました。
-  - 関連Issue: `docs/work-history/ISSUES.md` を参照
-  - 関連変更履歴: `docs/work-history/CHANGELOG.md` を参照
-# プロンプト生成・変換サービス プロジェクト概要
+# プロジェクト構造と重要な設定
 
-## プロジェクト構造
+## フロントエンド
 
-### ディレクトリ構造
+### YAML処理モジュール
+#### frontend/src/utils/yamlParser.js
+YAMLファイルの解析と構造化を行う主要モジュール。
+
+**主要機能:**
+1. YAML解析
+   - 複数のYAML形式に対応（illusion-art, midjourney-prompts, images）
+   - structure.yamlセクションの適切なスキップ
+   - エラーハンドリングとログ出力
+
+2. プロンプト抽出
+   - プロンプト詳細からの英語プロンプト優先抽出
+   - 日本語コンテンツの適切な処理
+   - 箇条書き形式のプロンプトの結合
+
+3. パラメータ処理
+   - agent, api, dependencyの適切な処理
+   - デフォルト値の設定
+
+**使用例:**
+```javascript
+const { parseYaml, structurePromptData } = require('./yamlParser.js');
+
+// YAMLファイルを解析
+const yamlData = parseYaml(yamlContent);
+
+// プロンプトを構造化
+const result = structurePromptData(yamlData);
+
+// 結果の利用
+result.prompts.forEach(prompt => {
+  console.log(prompt.prompt);  // プロンプト内容
+  console.log(prompt.parameters);  // パラメータ
+});
 ```
-.
-├── docs/                          # プロジェクトのドキュメント
-│   ├── project-context/          # プロジェクトのコンテキスト情報
-│   │   └── 00-CORE.md           # プロジェクト構造と重要な設定
-│   ├── technical-decisions/      # 技術的な決定記録
-│   │   ├── ADR.md               # アーキテクチャ決定記録
-│   │   └── DESIGN.md            # 設計文書
-│   └── work-history/            # 作業履歴
-│       ├── CHANGELOG.md         # 変更履歴
-│       └── ISSUES.md            # 問題と解決策の記録
-├── frontend/                     # Reactフロントエンド
-│   ├── public/                  # 静的ファイル
-│   │   └── index.html          # メインHTML
-│   └── src/                     # ソースコード
-│       ├── App.js              # メインアプリケーションコンポーネント
-│       ├── App.css             # アプリケーションスタイル
-│       ├── index.js            # エントリーポイント
-│       ├── index.css           # グローバルスタイル
-│       └── utils/              # ユーティリティ
-│           └── yamlParser.js   # YAML処理ユーティリティ
-├── backend/                     # Pythonバックエンド
-│   ├── app.py                  # メインアプリケーション
-│   ├── prompt_utils.py         # プロンプト処理ユーティリティ
-│   └── requirements.txt        # Python依存関係
-└── urashima/                   # プロンプトテンプレート
-    ├── urashima-prompts.yaml   # MidjourneyとRunway MLのプロンプトを含むYAMLファイル
-    └── urashima-yaml-01        # 神威から生成されたプロンプトテンプレート
 
-### 重要なファイル
-- frontend/src/App.js:
-  - メインアプリケーションコンポーネント
-  - AIサービスの分類表示（画像/動画）
-  - 3セクション構成のプロンプト生成フォーム
-  - モードセレクターとサービスセレクターの統合UI
-- frontend/src/App.css:
-  - アプリケーションスタイル
-  - レスポンシブデザイン
-  - モダンなUI要素
-  - 最適化されたスペース利用
-- frontend/src/utils/yamlParser.js:
-  - YAMLパース機能
-  - プロンプトの抽出と構造化
-  - `content: | -` と `dependency:` の間のテキストを抽出、`Agent Selection Reason:` と `agent:` で始まる行を削除
-  - 構造化データの生成
-- backend/app.py:
-  - FlaskベースのRESTful API実装
-  - プロンプト処理
-  - 要素ベース生成API: `elements` パラメータを使用してプロンプトを生成する機能
-- backend/prompt_utils.py:
-  - プロンプト変換・生成ロジック
-  - 要素ベースの生成機能
-  - AIサービス別の最適化
+**対応するYAML形式:**
+1. illusion-art形式
+```yaml
+src:
+  illusion-art:
+    image-name:
+      content: |
+        説明文
+        プロンプト詳細: "English prompt"
+      agent: "agent-name"
+      api: []
+```
 
-## 機能概要
+2. midjourney-prompts形式
+```yaml
+src:
+  midjourney-prompts:
+    prompt-name:
+      content: "English prompt"
+      agent: "agent-name"
+      api: []
+```
 
-### プロンプト生成モード
-1. 要素ベース生成（3セクション構成）
-   - Basic Elements（基本要素）
-     * Subject（主題：人物、ものなど）
-     * Environment（環境）
-     * When（時間帯・時期）
-     * Action（動作・行動）
-     * Mood（雰囲気）
-     * Style（スタイル）
-   - Composition & Camera Work（構図とカメラワーク）
-     * Camera Angle（カメラアングル）
-     * Shot Type（ショットタイプ）
-     * Perspective（パース）
-     * Composition Rule（構図ルール）
-     * Composition Technique（構図テクニック）
-   - Lighting & Details（照明と詳細）
-     * Light Direction（照明方向）
-     * Light Type（照明タイプ）
-     * Details（ディテール）
-     * Color Palette（カラーパレット）
+3. images形式
+```yaml
+src:
+  images:
+    image-name:
+      content: |
+        説明文
+        プロンプト: 
+        - プロンプト1
+        - プロンプト2
+      agent: "agent-name"
+      api: []
+```
 
-2. 柔軟な入力システム
-   - すべての要素がオプショナル
-   - プルダウンに「選択なし」オプション
-   - 空の入力値を自動スキップ
-
-### YAML変換モード
-1. ファイル処理
-   - プロンプトとパラメータの分離抽出
-   - プロンプト本文の最適化
-   - パラメータの構造化
-2. サービス最適化
-   - 画像生成AI対応
-   - 動画生成AI対応
-   - Runway ML（画像/動画）対応
-
-### 対応AIサービス
-
-#### 画像生成AI
-- Midjourney
-- Image FX
-- Imagen
-- DALL-E 3
-- Runway ML（画像モード）
-
-#### 動画生成AI
-- Runway ML（動画モード）
-- Sora
-- Pika Labs
-- Stable Video
-- Gen-2
-
-## 依存関係
-
-### フロントエンド
-- React 18.2.0: UIフレームワーク
-- react-dom 18.2.0: DOMレンダリング
-- react-scripts 5.0.1: ビルドツール
-- テスト関連:
-  - @testing-library/jest-dom 5.16.5
-  - @testing-library/react 13.4.0
-  - @testing-library/user-event 13.5.0
-
-### バックエンド
-- Flask: 軽量Webフレームワーク
-- PyYAML: YAMLパーサー/ジェネレーター
-- googletrans: 翻訳機能
-- requests: HTTP通信
-
-## ドキュメント管理方針
-
-### 1. 変更管理
-- すべての重要な変更はCHANGELOG.mdに記録
-- 変更はセマンティックバージョニングに従って管理
-- 各変更には関連するコミットハッシュやPR番号を記録
-
-### 2. 問題追跡
-- 発生した問題はすべてISSUES.mdに記録
-- 問題には以下を含める：
-  - 問題の詳細な説明
-  - 再現手順
-  - 解決策
-  - 関連するコミットやPR
-
-### 3. 設計決定
-- アーキテクチャの決定はADR.mdに記録
-- 詳細な設計はDESIGN.mdに記録
-- 各決定には理由と代替案の検討を含める
-
-### 4. コードレビュー
-- すべての変更はレビューを必要とする
-- レビューコメントは適切に文書化
-- 重要な議論は技術文書に反映
-
-### 5. GitHubへのプッシュ手順
-- 変更をコミットする前に、必ずドキュメントを更新してください。
-  - CHANGELOG.md: 変更内容を記録
-  - DESIGN.md: 設計変更がある場合
-  - CORE.md: プロジェクト構造の変更がある場合
-- 変更をコミットし、GitHubにプッシュします。
-  ```bash
-  git add .
-  git commit -m "変更内容: 具体的な変更の説明"
-  git push origin main
-  ```
+[以下既存の内容]

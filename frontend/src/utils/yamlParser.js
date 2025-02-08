@@ -1,9 +1,4 @@
-import yaml from 'js-yaml';
-
-/**
- *
- */
-
+const yaml = require('js-yaml');
 
 /**
  * YAMLテキストをJavaScriptオブジェクトに変換
@@ -11,7 +6,7 @@ import yaml from 'js-yaml';
  * @returns {Object} 変換されたJavaScriptオブジェクト
  * @throws {Error} YAML解析エラー
  */
-export const parseYaml = (yamlText) => {
+const parseYaml = (yamlText) => {
   try {
     return yaml.load(yamlText);
   } catch (error) {
@@ -21,11 +16,42 @@ export const parseYaml = (yamlText) => {
 };
 
 /**
+ * contentからプロンプトを抽出
+ * @param {string} content - コンテンツ文字列
+ * @returns {string} 抽出されたプロンプト
+ */
+const extractPrompt = (content) => {
+  // プロンプト詳細がある場合はそれを優先
+  const promptDetailMatch = content.match(/プロンプト詳細:[\s]*"([^"]+)"/s);
+  if (promptDetailMatch) {
+    return promptDetailMatch[1].trim();
+  }
+
+  // プロンプト:セクションの抽出
+  const promptMatch = content.match(/プロンプト:([^詳細仕様]*)/s);
+  if (promptMatch) {
+    // 箇条書きの項目を抽出して結合
+    const bulletPoints = promptMatch[1]
+      .split('\n')
+      .filter(line => line.trim().startsWith('-'))
+      .map(line => line.replace(/^-\s*/, '').trim())
+      .filter(line => line);
+    
+    if (bulletPoints.length > 0) {
+      return bulletPoints.join(', ');
+    }
+  }
+
+  // どちらもない場合は元のコンテンツを返す
+  return content;
+};
+
+/**
  * プロンプトデータを構造化
  * @param {Object} yamlData - パースされたYAMLデータ
  * @returns {Object} 構造化されたプロンプトデータ
  */
-export const structurePromptData = (yamlData) => {
+const structurePromptData = (yamlData) => {
   const structured = { prompts: [], errors: [] };
   let promptId = 1;
 
@@ -34,50 +60,48 @@ export const structurePromptData = (yamlData) => {
   }
 
   const srcEntries = Object.entries(yamlData.src);
-  const midjourneyPrompts = [];
-
-  // midjourney-promptsのcontentを順番に取得
-  for (const [key, promptCategory] of srcEntries) {
-    if (key === 'midjourney-prompts' && typeof promptCategory === 'object' && promptCategory !== null) {
-      for (const promptKey of Object.keys(promptCategory)) {
-        const item = promptCategory[promptKey];
-        if (item && item.content) {
-          midjourneyPrompts.push(item.content);
-        } else {
-          structured.errors.push(`contentが見つかりませんでした: ${key} - ${promptKey}`);
-        }
-      }
+  
+  // srcの直下のエントリーを処理
+  srcEntries.forEach(([sectionKey, section], index) => {
+    // structure.yamlはスキップ
+    if (sectionKey === 'structure.yaml') {
+      console.log('structure.yamlをスキップしました');
+      return;
     }
-  }
 
-  // structure.yamlのcontentを先頭に追加
-  for (const [key, promptCategory] of srcEntries) {
-    if (key === 'structure.yaml' && typeof promptCategory === 'object' && promptCategory !== null) {
-      for (const promptKey of Object.keys(promptCategory)) {
-        const item = promptCategory[promptKey];
-        if (item && item.content) {
-          structured.prompts.push({
-            prompt: item.content,
-            content: item.content,
-            parameters: {},
-            id: promptId++,
-          });
-        } else {
-          structured.errors.push(`contentが見つかりませんでした: ${key} - ${promptKey}`);
+    // 2番目以降のセクションを処理
+    if (typeof section === 'object' && section !== null) {
+      console.log(`セクション処理開始: ${sectionKey}`);
+      Object.entries(section).forEach(([itemKey, item]) => {
+        if (!item || !item.content) {
+          structured.errors.push(`contentが見つかりませんでした: ${sectionKey}/${itemKey}`);
+          return;
         }
-      }
-    }
-  }
 
-  // midjourney-promptsのcontentを順番に追加
-  midjourneyPrompts.forEach(content => {
-    structured.prompts.push({
-      prompt: content,
-      content: content,
-      parameters: {},
-      id: promptId++,
-    });
+        // contentからプロンプトを抽出
+        const promptContent = extractPrompt(item.content);
+
+        structured.prompts.push({
+          prompt: promptContent,
+          content: item.content,
+          parameters: {
+            agent: item.agent || null,
+            api: item.api || [],
+            dependency: item.dependency || []
+          },
+          id: promptId++,
+        });
+        console.log(`プロンプト抽出: ${itemKey}`);
+      });
+    }
   });
+
+  // デバッグ情報の出力
+  console.log(`処理されたセクション: ${srcEntries.length}`);
+  console.log(`抽出されたプロンプト: ${structured.prompts.length}`);
+  if (structured.errors.length > 0) {
+    console.log('エラー:', structured.errors);
+  }
 
   return structured;
 };
@@ -88,7 +112,7 @@ export const structurePromptData = (yamlData) => {
  * @returns {string} 変換されたYAMLテキスト
  * @throws {Error} YAML変換エラー
  */
-export const dumpYaml = (data) => {
+const dumpYaml = (data) => {
   try {
     return yaml.dump(data, {
       indent: 2,
@@ -106,7 +130,7 @@ export const dumpYaml = (data) => {
  * @param {string} yamlText - 検証するYAMLテキスト
  * @returns {boolean} 有効なYAMLの場合true
  */
-export const validateYaml = (yamlText) => {
+const validateYaml = (yamlText) => {
   try {
     yaml.load(yamlText);
     return true;
@@ -120,11 +144,19 @@ export const validateYaml = (yamlText) => {
  * @param {string} yamlText - 検証するYAMLテキスト
  * @returns {string|null} エラーメッセージ（エラーがない場合はnull）
  */
-export const getYamlError = (yamlText) => {
+const getYamlError = (yamlText) => {
   try {
     yaml.load(yamlText);
     return null;
   } catch (error) {
     return error.message;
   }
+};
+
+module.exports = {
+  parseYaml,
+  structurePromptData,
+  dumpYaml,
+  validateYaml,
+  getYamlError
 };

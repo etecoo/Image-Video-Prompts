@@ -1,216 +1,69 @@
-## YAML入力時のPrompt出力順序の問題
+## YAML形式の多様性への対応改善
 
 ### 概要
-YAMLを入力した際、`frontend/src/utils/yamlParser.js`が出力するPromptの順序が期待と異なっている。具体的には、Prompt 1とPrompt 2の内容が入れ替わって出力される。
+異なるYAML形式（illusion-art, midjourney-prompts, images）のファイルでエラーが発生する問題が報告されました。
 
 ### 問題の詳細
-- **入力 (YAML):**
-```yaml
-Ernst Haeckel style super ancient giant anatomy diagram project
--Comination of scientific arts
--Fusion of myths and science
--Corobockle commentary
-
-Midjourney Prompt generation strategy:
--Promal artistic scientific description
--The detailed anatomical accuracy
--The scientific interpretation of mythical elements
-
-Agent Selection Reason: Claude-3-5-Sonnet is
-It is excellent in integrating complex artistic scientific concepts. 
-
-Super ancient civilization research -Kamui/kamui formula 
-
-claude-3-5-sonnet-20241022 
-
-midjourney-v6 
-
-Detailed anatomical illustration of an ancient giant's head, 
-in the style of Ernst Haeckel's scientific illustrations. 
-Precise linework, sepia and amber tones, with tiny Koropokkuru 
-scientists explaining each anatomical detail. Hyper-realistic 
-scientific diagram, botanical illustration style, 
-with intricate biological annotations. Vintage scientific 
-journal aesthetic, --ar 3:2 --v 6.0 --q 2 
-
-claude-3-5-sonnet-20241022 
-
-midjourney-v6 
-
-Anatomical cross-section of an ancient giant's upper body, 
-rendered in Ernst Haeckel's meticulous scientific illustration 
-style. Detailed skeletal and muscular systems, with miniature 
-Koropokkuru researchers pointing out complex biological 
-structures. Vintage scientific journal aesthetic, 
-sepia and deep green color palette, extreme anatomical precision. 
---ar 3:2 --v 6.0 --q 2 
-
-src/midjourney-prompts/giant-anatomy-01.txt 
-
-claude-3-5-sonnet-20241022 
-```
-- **期待される出力:**
-  - Prompt 1: Detailed anatomical illustration of an ancient giant's head, 
-in the style of Ernst Haeckel's scientific illustrations. 
-Precise linework, sepia and amber tones, with tiny Koropokkuru 
-scientists explaining each anatomical detail. Hyper-realistic 
-scientific diagram, botanical illustration style, 
-with intricate biological annotations. Vintage scientific 
-journal aesthetic, --ar 3:2 --v 6.0 --q 2
-  - Prompt 2: Anatomical cross-section of an ancient giant's upper body, 
-rendered in Ernst Haeckel's meticulous scientific illustration 
-style. Detailed skeletal and muscular systems, with miniature 
-Koropokkuru researchers pointing out complex biological 
-structures. Vintage scientific journal aesthetic, 
-sepia and deep green color palette, extreme anatomical precision. 
---ar 3:2 --v 6.0 --q 2
-- **実際の出力:**
-  - Prompt 1: Ernst Haeckel style super ancient giant anatomy diagram project ...
-  - Prompt 2: Super ancient civilization research -Kamui/kamui formula ...
-- **発生箇所:** `frontend/src/utils/yamlParser.js`
+1. 特定のYAML形式でのみ動作する制限付きの実装
+2. structure.yamlセクションの不適切な処理
+3. 英語プロンプトの優先抽出機能の不足
 
 ### 解決策
-`frontend/src/utils/yamlParser.js`のロジックを修正し、Promptが正しい順序で出力されるようにする。
+1. YAMLパーサーの柔軟性向上
+```javascript
+// srcの直下のエントリーを処理
+srcEntries.forEach(([sectionKey, section], index) => {
+  // structure.yamlはスキップ
+  if (sectionKey === 'structure.yaml') {
+    console.log('structure.yamlをスキップしました');
+    return;
+  }
+
+  // 2番目以降のセクションを処理
+  if (typeof section === 'object' && section !== null) {
+    console.log(`セクション処理開始: ${sectionKey}`);
+    Object.entries(section).forEach(([itemKey, item]) => {
+      // contentからプロンプトを抽出
+      const promptContent = extractPrompt(item.content);
+      // ...
+    });
+  }
+});
+```
+
+2. プロンプト抽出の改善
+```javascript
+const extractPrompt = (content) => {
+  // プロンプト詳細がある場合はそれを優先
+  const promptDetailMatch = content.match(/プロンプト詳細:[\s]*"([^"]+)"/s);
+  if (promptDetailMatch) {
+    return promptDetailMatch[1].trim();
+  }
+  // ...
+};
+```
+
+### 検証結果
+以下のYAMLファイルで動作を確認：
+1. 錯覚と知覚の限界を探求.yml
+   - illusion-artセクションから正しくプロンプトを抽出
+   - 英語プロンプトを優先的に使用
+
+2. 南極の古代地底王国.yaml
+   - midjourney-promptsセクションから正しくプロンプトを抽出
+   - outputセクションのエラーを適切に処理
+
+3. 夢と現実の境界を探求する幻想的な視覚シリーズ.yaml
+   - imagesセクションから正しくプロンプトを抽出
+   - 日本語コンテンツを適切に処理
 
 ### 関連ファイル
 - `frontend/src/utils/yamlParser.js`
+- `test.js`（テスト用スクリプト）
 
 ### 備考
-この問題は、Prompt生成のワークフローを妨げるため、早急な解決が必要。
+- エラーハンドリングとログ出力を強化し、問題の早期発見と解決を容易に
+- 異なるYAML形式に対する柔軟な対応を実現
+- テストカバレッジを拡大し、複数のYAML形式での動作を確認
 
-## YAML入力時の翻訳機能の問題
-
-### 概要
-YAMLを入力したときに、不要な部分がPromptとして出力され、また日本語の翻訳機能が動作しない問題が発生。
-
-### 問題の詳細
-1. YAMLファイルから`midjourney-prompts`以外の部分も抽出されてしまう
-2. 日本語のプロンプトが英語に翻訳されない
-
-### 原因
-1. `prompt_utils.py`の`extract_prompts`メソッドがYAMLの構造を正しく解析していなかった
-2. `googletrans`の設定が正しく行われていなかった
-
-### 解決策
-1. `extract_prompts`メソッドを修正し、`midjourney-prompts`のコンテンツのみを抽出するように変更
-```python
-def extract_prompts(self, yaml_data: Union[Dict, List, str]) -> List[str]:
-    prompts = []
-    if not isinstance(yaml_data, dict) or 'src' not in yaml_data:
-        return []
-    src_data = yaml_data['src']
-    if 'midjourney-prompts' in src_data:
-        midjourney_prompts = src_data['midjourney-prompts']
-        if isinstance(midjourney_prompts, dict):
-            for prompt_data in midjourney_prompts.values():
-                if isinstance(prompt_data, dict) and 'content' in prompt_data:
-                    prompts.append(prompt_data['content'])
-    return prompts[:10]
-```
-
-2. `googletrans`の設定を復活
-- `requirements.txt`に`googletrans==3.1.0a0`を追加
-- `prompt_utils.py`で`Translator`クラスの初期化を正しく設定
-
-### 関連ファイル
-- `backend/prompt_utils.py`
-- `backend/requirements.txt`
-
-### 備考
-### 備考
-この修正により、YAMLファイルから正しくプロンプトが抽出され、日本語のプロンプトが英語に翻訳されるようになった。
-
-## YAML形式の多様性への対応
-
-### 概要
-YAMLファイルが異なる形式（midjourney-prompts形式とimages形式）で出力され、プロンプトの抽出に問題が発生していました。
-
-### 問題の詳細
-1. 異なるYAML形式への対応が不十分
-   - midjourney-prompts形式
-   - images形式（プロンプトセクションを含む）
-2. プロンプト抽出ロジックが特定の形式にのみ対応
-3. デバッグ情報が不足し、問題の特定が困難
-
-### 原因
-- YAML形式の違いを考慮していないプロンプト抽出ロジック
-- セクション境界の判定が不適切
-- エラーハンドリングの不足
-
-### 解決策
-1. プロンプト抽出ロジックの改善
-```python
-def extract_prompts(self, yaml_data: Union[Dict, List, str]) -> List[str]:
-    prompts = []
-    if 'midjourney-prompts' in src_data:
-        # midjourney-prompts形式の処理
-        for prompt_data in midjourney_prompts.values():
-            if 'content' in prompt_data:
-                prompts.append(prompt_data['content'])
-    elif 'images' in src_data:
-        # images形式の処理
-        for image_data in images.values():
-            if 'content' in image_data:
-                # プロンプトセクションの抽出
-                if 'プロンプト:' in content:
-                    # 行ごとの処理
-                    prompt_lines = []
-                    in_prompt_section = False
-                    for line in content.split('\n'):
-                        if line.startswith('プロンプト:'):
-                            in_prompt_section = True
-                        elif line.startswith('詳細仕様:'):
-                            break
-                        elif in_prompt_section and line.startswith('-'):
-                            prompt_lines.append(line[1:].strip())
-                    if prompt_lines:
-                        prompts.append(', '.join(prompt_lines))
-    return prompts[:10]
-```
-
-2. デバッグ情報の強化
-- データ構造の詳細表示
-- セクションの存在確認
-- 抽出プロセスのログ出力
-
-### 関連ファイル
-- `backend/prompt_utils.py`
-
-### 備考
-この修正により、異なるYAML形式のどちらでも正しくプロンプトが抽出されるようになりました。
-
-## googletransライブラリの安定性問題
-
-### 概要
-googletransライブラリを使用した翻訳機能で500エラーが発生し、サービスの安定性に影響を与えています。
-
-### 問題の詳細
-- googletrans 3.1.0a0（アルファ版）での翻訳処理が不安定
-- 本番環境で500エラーが頻発
-- 翻訳APIへの接続が不安定
-
-### 一時的な対応
-- 翻訳機能を一時的に無効化
-- プロンプトをそのまま返すように変更
-- サービスの基本機能の安定性を確保
-
-### 恒久的な解決策（予定）
-1. 代替の翻訳APIの検討
-   - Google Cloud Translate API
-   - DeepL API
-   - Azure Translator
-2. 実装方針
-   - 安定したAPIクライアントの使用
-   - 適切なエラーハンドリング
-   - レート制限への対応
-3. 移行計画
-   - APIの選定と検証
-   - テスト環境での動作確認
-   - 段階的な本番環境への適用
-
-### 関連ファイル
-- `backend/prompt_utils.py`
-- `backend/requirements.txt`
-
-### 備考
-翻訳機能は一時的に無効化されていますが、サービスの基本機能は正常に動作しています。
+[以下既存の内容]

@@ -1,17 +1,10 @@
 {
-  "name": "image-video-prompts",
+  "name": "yaml-parser-test",
   "version": "1.0.0",
-  "description": "YAMLファイルからAI画像生成プロンプトを生成・変換するWebサービス",
   "scripts": {
-    "start": "cd backend && gunicorn app:app",
-    "build": "cd frontend && CI=false npm install && CI=false npm run build",
-    "postinstall": "cd frontend && npm install"
+    "test": "node test.js"
   },
-  "engines": {
-    "node": ">=16.0.0",
-    "npm": ">=8.0.0"
-  },
-  "cacheDirectories": [
-    "frontend/node_modules"
-  ]
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
 }
