@@ -117,4 +117,100 @@ def extract_prompts(self, yaml_data: Union[Dict, List, str]) -> List[str]:
 - `backend/requirements.txt`
 
 ### 備考
+### 備考
 この修正により、YAMLファイルから正しくプロンプトが抽出され、日本語のプロンプトが英語に翻訳されるようになった。
+
+## YAML形式の多様性への対応
+
+### 概要
+YAMLファイルが異なる形式（midjourney-prompts形式とimages形式）で出力され、プロンプトの抽出に問題が発生していました。
+
+### 問題の詳細
+1. 異なるYAML形式への対応が不十分
+   - midjourney-prompts形式
+   - images形式（プロンプトセクションを含む）
+2. プロンプト抽出ロジックが特定の形式にのみ対応
+3. デバッグ情報が不足し、問題の特定が困難
+
+### 原因
+- YAML形式の違いを考慮していないプロンプト抽出ロジック
+- セクション境界の判定が不適切
+- エラーハンドリングの不足
+
+### 解決策
+1. プロンプト抽出ロジックの改善
+```python
+def extract_prompts(self, yaml_data: Union[Dict, List, str]) -> List[str]:
+    prompts = []
+    if 'midjourney-prompts' in src_data:
+        # midjourney-prompts形式の処理
+        for prompt_data in midjourney_prompts.values():
+            if 'content' in prompt_data:
+                prompts.append(prompt_data['content'])
+    elif 'images' in src_data:
+        # images形式の処理
+        for image_data in images.values():
+            if 'content' in image_data:
+                # プロンプトセクションの抽出
+                if 'プロンプト:' in content:
+                    # 行ごとの処理
+                    prompt_lines = []
+                    in_prompt_section = False
+                    for line in content.split('\n'):
+                        if line.startswith('プロンプト:'):
+                            in_prompt_section = True
+                        elif line.startswith('詳細仕様:'):
+                            break
+                        elif in_prompt_section and line.startswith('-'):
+                            prompt_lines.append(line[1:].strip())
+                    if prompt_lines:
+                        prompts.append(', '.join(prompt_lines))
+    return prompts[:10]
+```
+
+2. デバッグ情報の強化
+- データ構造の詳細表示
+- セクションの存在確認
+- 抽出プロセスのログ出力
+
+### 関連ファイル
+- `backend/prompt_utils.py`
+
+### 備考
+この修正により、異なるYAML形式のどちらでも正しくプロンプトが抽出されるようになりました。
+
+## googletransライブラリの安定性問題
+
+### 概要
+googletransライブラリを使用した翻訳機能で500エラーが発生し、サービスの安定性に影響を与えています。
+
+### 問題の詳細
+- googletrans 3.1.0a0（アルファ版）での翻訳処理が不安定
+- 本番環境で500エラーが頻発
+- 翻訳APIへの接続が不安定
+
+### 一時的な対応
+- 翻訳機能を一時的に無効化
+- プロンプトをそのまま返すように変更
+- サービスの基本機能の安定性を確保
+
+### 恒久的な解決策（予定）
+1. 代替の翻訳APIの検討
+   - Google Cloud Translate API
+   - DeepL API
+   - Azure Translator
+2. 実装方針
+   - 安定したAPIクライアントの使用
+   - 適切なエラーハンドリング
+   - レート制限への対応
+3. 移行計画
+   - APIの選定と検証
+   - テスト環境での動作確認
+   - 段階的な本番環境への適用
+
+### 関連ファイル
+- `backend/prompt_utils.py`
+- `backend/requirements.txt`
+
+### 備考
+翻訳機能は一時的に無効化されていますが、サービスの基本機能は正常に動作しています。
