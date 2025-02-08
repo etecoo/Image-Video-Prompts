@@ -1,69 +1,61 @@
-## YAML形式の多様性への対応改善
-
-### 概要
-異なるYAML形式（illusion-art, midjourney-prompts, images）のファイルでエラーが発生する問題が報告されました。
+## プロンプト抽出機能の改善
 
 ### 問題の詳細
-1. 特定のYAML形式でのみ動作する制限付きの実装
-2. structure.yamlセクションの不適切な処理
-3. 英語プロンプトの優先抽出機能の不足
+1. 特定のYAML形式でプロンプトが抽出できない
+2. プロンプト詳細セクションが優先されない
+3. structure.yamlセクションが適切にスキップされない
 
 ### 解決策
-1. YAMLパーサーの柔軟性向上
-```javascript
-// srcの直下のエントリーを処理
-srcEntries.forEach(([sectionKey, section], index) => {
-  // structure.yamlはスキップ
-  if (sectionKey === 'structure.yaml') {
-    console.log('structure.yamlをスキップしました');
-    return;
-  }
-
-  // 2番目以降のセクションを処理
-  if (typeof section === 'object' && section !== null) {
-    console.log(`セクション処理開始: ${sectionKey}`);
-    Object.entries(section).forEach(([itemKey, item]) => {
-      // contentからプロンプトを抽出
-      const promptContent = extractPrompt(item.content);
-      // ...
-    });
-  }
-});
+1. プロンプト抽出ロジックの改善
+```python
+def extract_prompt_from_content(self, content: str) -> Optional[str]:
+    # プロンプト詳細の優先抽出
+    prompt_detail_match = re.search(r'プロンプト詳細:[\s]*"([^"]+)"', content, re.DOTALL)
+    if prompt_detail_match:
+        return prompt_detail_match.group(1).strip()
+    # ...
 ```
 
-2. プロンプト抽出の改善
-```javascript
-const extractPrompt = (content) => {
-  // プロンプト詳細がある場合はそれを優先
-  const promptDetailMatch = content.match(/プロンプト詳細:[\s]*"([^"]+)"/s);
-  if (promptDetailMatch) {
-    return promptDetailMatch[1].trim();
-  }
-  // ...
-};
+2. セクション処理の汎用化
+```python
+def extract_prompts_from_section(self, section: Dict) -> List[str]:
+    prompts = []
+    if isinstance(section, dict):
+        for item in section.values():
+            if isinstance(item, dict) and 'content' in item:
+                prompt = self.extract_prompt_from_content(item['content'])
+                if prompt:
+                    prompts.append(prompt)
+    return prompts
 ```
 
-### 検証結果
-以下のYAMLファイルで動作を確認：
+3. structure.yamlのスキップ処理
+```python
+for section_key, section in src_data.items():
+    if section_key != 'structure.yaml':
+        section_prompts = optimizer.extract_prompts_from_section(section)
+        prompts.extend(section_prompts)
+```
+
+### テスト結果
 1. 錯覚と知覚の限界を探求.yml
-   - illusion-artセクションから正しくプロンプトを抽出
-   - 英語プロンプトを優先的に使用
+   - 10個のプロンプトを正しく抽出
+   - プロンプト詳細から英語プロンプトを優先的に抽出
+   - フォーマットが適切に維持
 
 2. 南極の古代地底王国.yaml
-   - midjourney-promptsセクションから正しくプロンプトを抽出
-   - outputセクションのエラーを適切に処理
+   - 10個のプロンプトを正しく抽出
+   - midjourney-promptsセクションから適切に抽出
+   - 改行とフォーマットが正しく処理
 
 3. 夢と現実の境界を探求する幻想的な視覚シリーズ.yaml
-   - imagesセクションから正しくプロンプトを抽出
-   - 日本語コンテンツを適切に処理
+   - 10個のプロンプトを正しく抽出
+   - imagesセクションから適切に抽出
+   - 日本語から英語への適切な変換
 
-### 関連ファイル
-- `frontend/src/utils/yamlParser.js`
-- `test.js`（テスト用スクリプト）
-
-### 備考
-- エラーハンドリングとログ出力を強化し、問題の早期発見と解決を容易に
-- 異なるYAML形式に対する柔軟な対応を実現
-- テストカバレッジを拡大し、複数のYAML形式での動作を確認
+### 再発防止策
+1. 複数のYAML形式に対応するテストスクリプトの追加
+2. エラーハンドリングとログ出力の強化
+3. プロンプト抽出ロジックの汎用化
 
 [以下既存の内容]

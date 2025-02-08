@@ -42,10 +42,7 @@ class PromptOptimizer:
         return bool(re.search(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]', text))
 
     def translate_to_english(self, text: str) -> str:
-        """
-        日本語テキストを英語に翻訳する
-        requestsを使用して直接Google Translate APIを呼び出す
-        """
+        """日本語テキストを英語に翻訳する"""
         if not text or not self.is_japanese(text):
             return text
 
@@ -77,76 +74,37 @@ class PromptOptimizer:
         except Exception as e:
             print(f"Translation error: {str(e)}")
             return text
-    def extract_prompts(self, yaml_data: Union[Dict, List, str]) -> List[str]:
-        def extract_prompts(self, yaml_data: Union[Dict, List, str]) -> List[str]:
-            """YAMLデータから複数のプロンプトを抽出"""
-            prompts = []
-    
-            if not isinstance(yaml_data, dict) or 'src' not in yaml_data:
-                return []
-    
-            src_data = yaml_data['src']
-            
-            # 1. midjourney-promptsからの抽出
-            if 'midjourney-prompts' in src_data:
-                midjourney_prompts = src_data['midjourney-prompts']
-                if isinstance(midjourney_prompts, dict):
-                    for prompt_data in midjourney_prompts.values():
-                        if isinstance(prompt_data, dict) and 'content' in prompt_data:
-                            prompts.append(prompt_data['content'])
-    
-            # 2. imagesセクションからの抽出
-            if 'images' in src_data and not prompts:  # midjourney-promptsが無い場合のみ
-                images = src_data['images']
-                if isinstance(images, dict):
-                    for image_data in images.values():
-                        if isinstance(image_data, dict) and 'content' in image_data:
-                            content = image_data['content']
-                            # プロンプトセクションを抽出
-                            if 'プロンプト:' in content:
-                                sections = content.split('プロンプト:')[1].split('\n')
-                                prompt_lines = []
-                                for line in sections:
-                                    line = line.strip()
-                                    if not line or line.startswith('詳細仕様:'):
-                                        break
-                                    if line.startswith('-'):
-                                        prompt_lines.append(line[1:].strip())
-                                if prompt_lines:
-                                    prompt = ', '.join(prompt_lines)
-                                    prompts.append(prompt)
-    
-            if not prompts:
-                print("プロンプトが見つかりません。データ構造を確認:")
-                print(f"src_data keys: {list(src_data.keys())}")
-                if 'midjourney-prompts' in src_data:
-                    print("midjourney-prompts section found")
-                if 'images' in src_data:
-                    print(f"images section found with {len(src_data['images'])} entries")
-    
-            return prompts[:10]  # 最大10個のプロンプトを返す
-    def extract_prompt(self, yaml_data: Dict) -> str:
-        """YAMLデータから単一のプロンプトを抽出"""
-        if isinstance(yaml_data, str):
-            return yaml_data
 
-        prompt = ""
-        if 'prompt' in yaml_data:
-            return yaml_data['prompt']
-        elif 'description' in yaml_data:
-            prompt = yaml_data['description']
-        elif 'text' in yaml_data:
-            prompt = yaml_data['text']
-        elif 'content' in yaml_data:
-            prompt = yaml_data['content']
-        
-        if not prompt:
-            for value in yaml_data.values():
-                if isinstance(value, str):
-                    prompt = value
-                    break
+    def extract_prompt_from_content(self, content: str) -> Optional[str]:
+        """contentからプロンプトを抽出"""
+        # プロンプト詳細の抽出
+        prompt_detail_match = re.search(r'プロンプト詳細:[\s]*"([^"]+)"', content, re.DOTALL)
+        if prompt_detail_match:
+            return prompt_detail_match.group(1).strip()
 
-        return prompt
+        # プロンプトセクションの抽出
+        if 'プロンプト:' in content:
+            prompt_section = content.split('プロンプト:')[1].split('詳細仕様:')[0]
+            prompt_lines = []
+            for line in prompt_section.split('\n'):
+                line = line.strip()
+                if line.startswith('-'):
+                    prompt_lines.append(line[1:].strip())
+            if prompt_lines:
+                return ', '.join(prompt_lines)
+
+        return content
+
+    def extract_prompts_from_section(self, section: Dict) -> List[str]:
+        """セクションからプロンプトを抽出"""
+        prompts = []
+        if isinstance(section, dict):
+            for item in section.values():
+                if isinstance(item, dict) and 'content' in item:
+                    prompt = self.extract_prompt_from_content(item['content'])
+                    if prompt:
+                        prompts.append(prompt)
+        return prompts
 
     def optimize_for_service(self, prompt: str, service: str) -> str:
         """サービスごとのプロンプト最適化"""
@@ -182,79 +140,6 @@ class PromptOptimizer:
 
         return prompt
 
-    def generate_from_elements(self, elements: Dict[str, str], service: str) -> str:
-        """要素ベースのプロンプト生成"""
-        prompt_parts = []
-        
-        # 主要な要素
-        if elements.get('subject'):
-            prompt_parts.append(self.translate_to_english(elements['subject']))
-        
-        if elements.get('action'):
-            prompt_parts.append(self.translate_to_english(elements['action']))
-        
-        # 環境と時間
-        environment_parts = []
-        if elements.get('environment'):
-            environment_parts.append(self.translate_to_english(elements['environment']))
-        if elements.get('when'):
-            environment_parts.append(self.translate_to_english(elements['when']))
-        if environment_parts:
-            prompt_parts.append(f"in {', '.join(environment_parts)}")
-        
-        # 雰囲気とスタイル
-        if elements.get('mood'):
-            prompt_parts.append(f"with {self.translate_to_english(elements['mood'])} mood")
-        
-        if elements.get('style'):
-            prompt_parts.append(f"in {self.translate_to_english(elements['style'])} style")
-        
-        # カメラワーク
-        camera_parts = []
-        if elements.get('cameraAngle'):
-            camera_parts.append(f"from {elements['cameraAngle'].replace('_', ' ')}")
-        if elements.get('shotType'):
-            camera_parts.append(elements['shotType'].replace('_', ' '))
-        if elements.get('perspective'):
-            camera_parts.append(f"with {elements['perspective'].replace('_', ' ')}")
-        if camera_parts:
-            prompt_parts.append(f"shot {', '.join(camera_parts)}")
-        
-        # 構図
-        composition_parts = []
-        if elements.get('compositionRule'):
-            composition_parts.append(elements['compositionRule'].replace('_', ' '))
-        if elements.get('compositionTechnique') and elements['compositionTechnique'] != 'none':
-            composition_parts.append(elements['compositionTechnique'].replace('_', ' '))
-        if composition_parts:
-            prompt_parts.append(f"using {', '.join(composition_parts)} composition")
-        
-        # 照明
-        lighting_parts = []
-        if elements.get('lightingDirection'):
-            lighting_parts.append(elements['lightingDirection'].replace('_', ' '))
-        if elements.get('lightingType'):
-            lighting_parts.append(elements['lightingType'].replace('_', ' '))
-        if lighting_parts:
-            prompt_parts.append(f"with {', '.join(lighting_parts)} lighting")
-        
-        # 詳細と色
-        if elements.get('details'):
-            prompt_parts.append(self.translate_to_english(elements['details']))
-        
-        if elements.get('colorPalette'):
-            prompt_parts.append(f"using {self.translate_to_english(elements['colorPalette'])} colors")
-
-        base_prompt = ", ".join(filter(None, prompt_parts))
-        return self.optimize_for_service(base_prompt, service)
-
-def load_yaml_content(content):
-    """YAMLコンテンツをPythonオブジェクトに変換"""
-    try:
-        return yaml.safe_load(content)
-    except yaml.YAMLError as e:
-        raise ValueError(f"YAML解析エラー: {str(e)}")
-
 def optimize_prompt(yaml_data, service='default') -> Union[str, List[str]]:
     """YAMLデータからプロンプトを生成して最適化"""
     try:
@@ -262,47 +147,23 @@ def optimize_prompt(yaml_data, service='default') -> Union[str, List[str]]:
         
         if isinstance(yaml_data, str):
             try:
-                yaml_data = load_yaml_content(yaml_data)
+                yaml_data = yaml.safe_load(yaml_data)
             except Exception as e:
                 print(f"YAML解析エラー: {str(e)}")
                 raise
 
-        # 'yaml'キーがある場合はその中身を使用
         if isinstance(yaml_data, dict) and 'yaml' in yaml_data:
             yaml_data = yaml_data['yaml']
-            print(f"Using content from 'yaml' key: {type(yaml_data)}")
 
-        if isinstance(yaml_data, dict) and 'elements' in yaml_data:
-            result = optimizer.generate_from_elements(yaml_data['elements'], service)
-            return result if isinstance(result, str) else str(result)
-
-        # imagesセクションからプロンプトを抽出
         prompts = []
         if isinstance(yaml_data, dict) and 'src' in yaml_data:
             src_data = yaml_data['src']
-            if 'images' in src_data:
-                images = src_data['images']
-                if isinstance(images, dict):
-                    for image_data in images.values():
-                        if isinstance(image_data, dict) and 'content' in image_data:
-                            content = image_data['content']
-                            if 'プロンプト:' in content:
-                                # プロンプトセクションを抽出
-                                prompt_lines = []
-                                in_prompt_section = False
-                                for line in content.split('\n'):
-                                    line = line.strip()
-                                    if line.startswith('プロンプト:'):
-                                        in_prompt_section = True
-                                        continue
-                                    elif line.startswith('詳細仕様:'):
-                                        in_prompt_section = False
-                                        break
-                                    elif in_prompt_section and line.startswith('-'):
-                                        prompt_lines.append(line[1:].strip())
-                                if prompt_lines:
-                                    prompt = ', '.join(prompt_lines)
-                                    prompts.append(prompt)
+            
+            # structure.yamlをスキップ
+            for section_key, section in src_data.items():
+                if section_key != 'structure.yaml':
+                    section_prompts = optimizer.extract_prompts_from_section(section)
+                    prompts.extend(section_prompts)
 
         if not prompts:
             print("プロンプトが見つかりません。データ構造を確認:")
@@ -310,15 +171,6 @@ def optimize_prompt(yaml_data, service='default') -> Union[str, List[str]]:
             if isinstance(yaml_data, dict) and 'src' in yaml_data:
                 src_data = yaml_data['src']
                 print(f"Keys in src: {list(src_data.keys())}")
-                if 'images' in src_data:
-                    print(f"Found {len(src_data['images'])} images")
-                    for name, data in src_data['images'].items():
-                        if isinstance(data, dict) and 'content' in data:
-                            content = data['content']
-                            print(f"\nImage {name} content preview:")
-                            print(content.split('\n')[0])
-                            if 'プロンプト:' in content:
-                                print("Contains プロンプト section")
             raise ValueError("有効なプロンプトが見つかりません")
 
         # プロンプトを最適化
@@ -349,10 +201,13 @@ def generate_variations(base_prompt: Union[str, Dict], num_variations: int = 1) 
                     ]) if random.random() > 0.5 else value
                     for key, value in elements.items()
                 }
-                variation = optimizer.generate_from_elements(modified_elements, service)
+                variation = optimizer.optimize_for_service(
+                    ", ".join(modified_elements.values()),
+                    service
+                )
                 variations.append(variation)
         else:
-            base_prompt_str = base_prompt if isinstance(base_prompt, str) else optimizer.extract_prompt(base_prompt)
+            base_prompt_str = base_prompt if isinstance(base_prompt, str) else str(base_prompt)
             modifiers = [
                 ", high quality, detailed",
                 ", minimalist, clean",
@@ -362,12 +217,10 @@ def generate_variations(base_prompt: Union[str, Dict], num_variations: int = 1) 
                 ", muted tones"
             ]
             
-            for i in range(num_variations):
-                if i == 0:
-                    variations.append(base_prompt_str)
-                else:
-                    variation = base_prompt_str + random.choice(modifiers)
-                    variations.append(variation)
+            variations.append(base_prompt_str)
+            for _ in range(num_variations - 1):
+                variation = base_prompt_str + random.choice(modifiers)
+                variations.append(variation)
 
         return variations
 
