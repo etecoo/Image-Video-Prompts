@@ -9,6 +9,13 @@ import random
 REQUESTY_API_ENDPOINT = "https://requesty.ai/v1"
 REQUESTY_API_KEY = os.getenv("REQUESTY_API_KEY")
 
+def load_yaml_content(content):
+    """YAMLコンテンツをPythonオブジェクトに変換"""
+    try:
+        return yaml.safe_load(content)
+    except yaml.YAMLError as e:
+        raise ValueError(f"YAML解析エラー: {str(e)}")
+
 class PromptOptimizer:
     def __init__(self):
         self.service_patterns = {
@@ -147,7 +154,7 @@ def optimize_prompt(yaml_data, service='default') -> Union[str, List[str]]:
         
         if isinstance(yaml_data, str):
             try:
-                yaml_data = yaml.safe_load(yaml_data)
+                yaml_data = load_yaml_content(yaml_data)
             except Exception as e:
                 print(f"YAML解析エラー: {str(e)}")
                 raise
